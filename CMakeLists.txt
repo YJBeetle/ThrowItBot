@@ -39,6 +39,20 @@ else()
 endif()
 include_directories(${Boost_INCLUDE_DIR})
 
+## cairo
+include(FindPkgConfig)
+pkg_check_modules(CAIRO cairo)
+if (NOT CAIRO_FOUND)
+message(FATAL_ERROR "Cairo not found!")
+endif ()
+message(STATUS "Cairo library status:")
+message(STATUS "    version: ${CAIRO_VERSION}")
+message(STATUS "    include path: ${CAIRO_INCLUDE_DIRS}")
+message(STATUS "    lib path: ${CAIRO_LIBDIR}")
+message(STATUS "    libraries: ${CAIRO_LIBRARIES}")
+include_directories(${CAIRO_INCLUDE_DIRS})
+link_directories(${CAIRO_LIBDIR})
+
 ## TgBot
 include_directories("/usr/local/include")
 link_directories("/usr/local/lib")
@@ -49,6 +63,7 @@ set(LIB_LIST
     ${OPENSSL_LIBRARIES}
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
+    ${CAIRO_LIBRARIES}
     TgBot
 )
 
