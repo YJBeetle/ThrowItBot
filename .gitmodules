@@ -1,0 +1,3 @@
+[submodule "3rdParty/ArtRobot"]
+	path = 3rdParty/ArtRobot
+	url = git@gitlab.com:project-null-plus-1/art_robot.git
