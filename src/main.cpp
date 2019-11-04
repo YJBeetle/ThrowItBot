@@ -39,6 +39,8 @@ int main()
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
+        bot.getApi().sendChatAction(message->chat->id, "upload_photo");
+
         auto photos = bot.getApi().getUserProfilePhotos(message->chat->id);
         auto userImgPath = bot.getApi().getFile(photos->photos[0][1]->fileId);
         auto userImgData = bot.getApi().downloadFile(userImgPath->filePath); // 图像数据（maybe jpg）
