@@ -102,6 +102,10 @@ int main()
         cout << "onInlineQuery" << endl;
     });
 
+    bot.getEvents().onChosenInlineResult([&bot](ChosenInlineResult::Ptr chosenInlineResult) {
+        cout << "onChosenInlineResult" << endl;
+    });
+
     while (true)
     {
         try
