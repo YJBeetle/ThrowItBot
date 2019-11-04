@@ -29,7 +29,7 @@ int main()
     Bot bot(token);
 
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
-        printf("User wrote %s\n", message->text.c_str());
+        cout << message->chat->username << ": " << message->text << endl;
         if (
             StringTools::startsWith(message->text, "/start") ||
             StringTools::startsWith(message->text, "/help") ||
@@ -61,8 +61,8 @@ int main()
         {
             // makeUserSticker(id);
             auto username = message->chat->username;
-
-            auto userImgPath = bot.getApi().getFile(userPhotosInfo->photos[0][1]->fileId);
+            auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
+            auto userImgPath = bot.getApi().getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
             auto userImgData = bot.getApi().downloadFile(userImgPath->filePath); // 图像数据（maybe jpg）
 
             auto body = Component::Group();                         // body
