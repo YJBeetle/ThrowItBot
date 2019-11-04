@@ -68,8 +68,8 @@ int main()
         auto fileNew = make_shared<InputFile>();
         fileNew->data = renderer.getDataString();
         fileNew->mimeType = "image/png";
-        bot.getApi().sendPhoto(message->chat->id, fileNew, "", 0, std::make_shared<GenericReply>(), "", true);
-
+        // bot.getApi().sendPhoto(message->chat->id, fileNew, "", 0, std::make_shared<GenericReply>(), "", true);
+        bot.getApi().sendSticker(message->chat->id, fileNew, 0, std::make_shared<GenericReply>(), true);
         bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
     });
 
