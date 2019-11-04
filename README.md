@@ -5,7 +5,9 @@ Throw It!
 ## Depend
 
 ```
-sudo apt-get install g++ make binutils cmake libssl-dev libboost-system-dev zlib1g-dev
+sudo apt-get install g++ make binutils cmake
+sudo apt-get install libssl-dev libboost-system-dev zlib1g-dev
+sudo apt-get install libcairo2-dev libopencv-dev
 ```
 
 ```
