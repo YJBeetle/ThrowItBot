@@ -98,18 +98,28 @@ int main()
         }
     });
 
+    bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
+        cout << "onInlineQuery" << endl;
+    });
+
     while (true)
     {
         try
         {
             cout << "Connecting to telegram API server" << endl;
             cout << "Bot username: " << bot.getApi().getMe()->username << endl;
+
             TgLongPoll longPoll(bot);
             while (true)
             {
-                printf("Long poll started\n");
+                cout << "Long poll started." << endl;
                 longPoll.start();
             }
+
+            // TgWebhookTcpServer webhookServer(8888, bot);
+            // string webhookUrl(getenv("WEBHOOK_URL"));
+            // bot.getApi().setWebhook(webhookUrl);
+            // webhookServer.start();
         }
         catch (TgException &e)
         {
