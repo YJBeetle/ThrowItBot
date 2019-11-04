@@ -110,3 +110,6 @@ set(LIB_LIST
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_link_libraries(${PROJECT_NAME} ${LIB_LIST})
+
+configure_file(picture/p.png p.png COPYONLY)
+configure_file(picture/p_mask.png p_mask.png COPYONLY)
