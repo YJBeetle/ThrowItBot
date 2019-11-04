@@ -7,9 +7,19 @@ project(TG_ThrowItBot)
 set(CMAKE_CXX_FLAGS "-g")
 
 # sources
-include_directories(include)
+include_directories("3rdParty/ArtRobot/include")
 set(SRC_LIST
     src/main.cpp
+    3rdParty/ArtRobot/src/Component/Base.cpp
+    3rdParty/ArtRobot/src/Component/Group.cpp
+    3rdParty/ArtRobot/src/Component/Image.cpp
+    3rdParty/ArtRobot/src/Component/ImageMask.cpp
+    3rdParty/ArtRobot/src/Component/Rectangle.cpp
+    3rdParty/ArtRobot/src/Component/Repeat.cpp
+    3rdParty/ArtRobot/src/Component/Svg.cpp
+    3rdParty/ArtRobot/src/Component/Text.cpp
+    3rdParty/ArtRobot/src/Types/Color.cpp
+    3rdParty/ArtRobot/src/Renderer.cpp
 )
 
 # libs
@@ -39,6 +49,10 @@ else()
 endif()
 include_directories(${Boost_INCLUDE_DIR})
 
+## TgBot
+include_directories("/usr/local/include")
+link_directories("/usr/local/lib")
+
 ## cairo
 include(FindPkgConfig)
 pkg_check_modules(CAIRO cairo)
@@ -53,9 +67,30 @@ message(STATUS "    libraries: ${CAIRO_LIBRARIES}")
 include_directories(${CAIRO_INCLUDE_DIRS})
 link_directories(${CAIRO_LIBDIR})
 
-## TgBot
-include_directories("/usr/local/include")
-link_directories("/usr/local/lib")
+## Freetype
+find_package(Freetype REQUIRED)
+include_directories(${FREETYPE_INCLUDE_DIRS})
+
+## rsvg
+pkg_check_modules(RSVG librsvg-2.0)
+if (NOT RSVG_FOUND)
+message(FATAL_ERROR "rsvg not found!")
+endif ()
+message(STATUS "rsvg library status:")
+message(STATUS "    version: ${RSVG_VERSION}")
+message(STATUS "    include path: ${RSVG_INCLUDE_DIRS}")
+message(STATUS "    lib path: ${RSVG_LIBDIR}")
+message(STATUS "    libraries: ${RSVG_LIBRARIES}")
+include_directories(${RSVG_INCLUDE_DIRS})
+link_directories(${RSVG_LIBDIR})
+
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+message(STATUS "OpenCV library status:")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 set(LIB_LIST
     ${CMAKE_THREAD_LIBS_INIT}
@@ -63,8 +98,12 @@ set(LIB_LIST
     ${OPENSSL_LIBRARIES}
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
-    ${CAIRO_LIBRARIES}
     TgBot
+    ${CAIRO_LIBRARIES}
+    ${FREETYPE_LIBRARIES}
+    # ${RSVG_LIBRARIES}
+    rsvg-2
+    ${OpenCV_LIBS}
 )
 
 # building project
