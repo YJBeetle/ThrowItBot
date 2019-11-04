@@ -63,7 +63,7 @@ int main()
             auto username = message->chat->username;
             auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
             auto userImgPath = bot.getApi().getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
-            auto userImgData = bot.getApi().downloadFile(userImgPath->filePath); // 图像数据（maybe jpg）
+            auto userImgData = bot.getApi().downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
 
             auto body = Component::Group();                         // body
             auto bg = Component::Image(0, 0, 512, 512, 0, "p.png"); // bg
@@ -96,6 +96,11 @@ int main()
         {
             bot.getApi().sendMessage(message->chat->id, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
         }
+    });
+
+    bot.getEvents().onNonCommandMessage([&bot](Message::Ptr message) {
+        if (message->forwardFrom)
+            cout << message->forwardFrom->id << endl;
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
