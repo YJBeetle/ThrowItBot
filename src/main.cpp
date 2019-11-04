@@ -11,6 +11,52 @@ using namespace cv;
 using namespace TgBot;
 using namespace ArtRobot;
 
+void throwIt(const Api &api, int64_t chatId, User::Ptr user)
+{
+    api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
+
+    auto userPhotosInfo = api.getUserProfilePhotos(user->id);
+
+    if (userPhotosInfo->totalCount) // 照片数不为0
+    {
+        auto username = user->username;
+
+        auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
+        auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
+        auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
+
+        auto body = Component::Group();                         // body
+        auto bg = Component::Image(0, 0, 512, 512, 0, "p.png"); // bg
+        body.addChild(bg.getSurface());                         // Show bg
+
+        vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
+        Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
+        auto userImg = Component::Image(18.56,
+                                        180.98,
+                                        135.53,
+                                        135.53,
+                                        -160,
+                                        userImgMat);
+
+        auto mask = Component::ImageMask(0, 0, 512, 512, 0, "p_mask.png", userImg.getSurface()); // Mask
+        body.addChild(mask.getSurface());                                                        // Show mask
+
+        // Renderer renderer(OutputTypePixmap, 512, 512, Renderer::PX, 72);
+        Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72);
+        renderer.render(body.getSurface());
+
+        auto fileNew = make_shared<InputFile>();
+        fileNew->data = renderer.getDataString();
+        fileNew->mimeType = "image/png";
+        // api.sendPhoto(chatId, fileNew, "", 0, std::make_shared<GenericReply>(), "", true);
+        api.sendSticker(chatId, fileNew, 0, std::make_shared<GenericReply>(), true);
+    }
+    else
+    {
+        api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+    }
+}
+
 int main()
 {
     cout << "ThrowItBot start!" << endl;
@@ -30,6 +76,14 @@ int main()
 
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
         cout << message->chat->username << ": " << message->text << endl;
+
+        if (message->forwardFrom) // 是转发的消息
+        {
+            throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
+            bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+            return;
+        }
+
         if (
             StringTools::startsWith(message->text, "/start") ||
             StringTools::startsWith(message->text, "/help") ||
@@ -50,57 +104,8 @@ int main()
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
-        auto &api = bot.getApi();
-
-        auto id = message->chat->id;
-
-        api.sendChatAction(id, "upload_photo"); // 设置正在发送
-
-        auto userPhotosInfo = api.getUserProfilePhotos(id);
-        if (userPhotosInfo->totalCount)
-        {
-            // makeUserSticker(id);
-            auto username = message->chat->username;
-            auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
-            auto userImgPath = bot.getApi().getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
-            auto userImgData = bot.getApi().downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
-
-            auto body = Component::Group();                         // body
-            auto bg = Component::Image(0, 0, 512, 512, 0, "p.png"); // bg
-            body.addChild(bg.getSurface());                         // Show bg
-
-            vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
-            Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
-            auto userImg = Component::Image(18.56,
-                                            180.98,
-                                            135.53,
-                                            135.53,
-                                            -160,
-                                            userImgMat);
-
-            auto mask = Component::ImageMask(0, 0, 512, 512, 0, "p_mask.png", userImg.getSurface()); // Mask
-            body.addChild(mask.getSurface());                                                        // Show mask
-
-            // Renderer renderer(OutputTypePixmap, 512, 512, Renderer::PX, 72);
-            Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72);
-            renderer.render(body.getSurface());
-
-            auto fileNew = make_shared<InputFile>();
-            fileNew->data = renderer.getDataString();
-            fileNew->mimeType = "image/png";
-            // bot.getApi().sendPhoto(message->chat->id, fileNew, "", 0, std::make_shared<GenericReply>(), "", true);
-            bot.getApi().sendSticker(message->chat->id, fileNew, 0, std::make_shared<GenericReply>(), true);
-            bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        else
-        {
-            bot.getApi().sendMessage(message->chat->id, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-    });
-
-    bot.getEvents().onNonCommandMessage([&bot](Message::Ptr message) {
-        if (message->forwardFrom)
-            cout << message->forwardFrom->id << endl;
+        throwIt(bot.getApi(), message->chat->id, message->from);
+        bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
