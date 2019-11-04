@@ -22,4 +22,13 @@ make -j4
 sudo make install
 ```
 
-## Build
+ArtRobot: https://gitlab.com/project-null-plus-1/art_robot
+
+## Build&&Test
+
+    mkdir build && cd build && cmake ..
+    make && TOKEN=<TOKEN> ./TG_ThrowItBot
+
+## Run
+
+    TOKEN=<TOKEN> ./TG_ThrowItBot
