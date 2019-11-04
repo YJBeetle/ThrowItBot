@@ -25,21 +25,21 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
         auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
         auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
 
-        auto body = Component::Group();                         // body
-        auto bg = Component::Image(0, 0, 512, 512, 0, "p.png"); // bg
-        body.addChild(bg.getSurface());                         // Show bg
+        auto body = Component::Group();                                      // body
+        auto bg = make_shared<Component::Image>(0, 0, 512, 512, 0, "p.png"); // bg
+        body.addChild(bg);                                                   // Show bg
 
         vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
         Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
-        auto userImg = Component::Image(18.56,
-                                        180.98,
-                                        135.53,
-                                        135.53,
-                                        -160,
-                                        userImgMat);
+        auto userImg = make_shared<Component::Image>(18.56,
+                                                     180.98,
+                                                     135.53,
+                                                     135.53,
+                                                     -160,
+                                                     userImgMat);
 
-        auto mask = Component::ImageMask(0, 0, 512, 512, 0, "p_mask.png", userImg.getSurface()); // Mask
-        body.addChild(mask.getSurface());                                                        // Show mask
+        auto mask = make_shared<Component::ImageMask>(0, 0, 512, 512, 0, "p_mask.png", userImg); // Mask
+        body.addChild(mask);                                                                     // Show mask
 
         // Renderer renderer(OutputTypePixmap, 512, 512, Renderer::PX, 72);
         Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72);
