@@ -199,44 +199,38 @@ int main()
         cout << "InlineQuery: " << inlineQuery->from->username << ": " << inlineQuery->query << endl;
 
         vector<InlineQueryResult::Ptr> results; // 准备results
-        try
+        string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
+        pushStickerToResultByUsername(bot.getApi(), results, username);
+        if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
         {
-            string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
-            pushStickerToResultByUsername(bot.getApi(), results, username);
-            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
+            int i = 0;
+            for (auto user : usersData)
             {
-                int i = 0;
-                for (auto user : usersData)
+                if (user.first == username)
+                    continue;
+                if (user.first.find(inlineQuery->query) != string::npos)
                 {
-                    if (user.first == username)
-                        continue;
-                    if (user.first.find(inlineQuery->query) != string::npos)
-                    {
-                        auto result = make_shared<InlineQueryResultCachedSticker>();
-                        result->id = user.first;
-                        result->stickerFileId = user.second;
-                        results.push_back(result);
-                    }
-                    if (i++ >= 20)
-                        break;
+                    auto result = make_shared<InlineQueryResultCachedSticker>();
+                    result->id = user.first;
+                    result->stickerFileId = user.second;
+                    results.push_back(result);
                 }
+                if (i++ >= 20)
+                    break;
             }
         }
-        catch (TgException &e)
-        {
-            auto text = make_shared<InputTextMessageContent>();
-            text->messageText = "aabbcc";
-            auto result = make_shared<InlineQueryResultArticle>();
-            result->title = "xxx";
-            result->id = "1234567";
-            result->inputMessageContent = text;
 
-            results.push_back(result);
-        }
+        // auto text = make_shared<InputTextMessageContent>();
+        // text->messageText = "aabbcc";
+        // auto result = make_shared<InlineQueryResultArticle>();
+        // result->title = "xxx";
+        // result->id = "1234567";
+        // result->inputMessageContent = text;
+        // results.push_back(result);
 
         // debug json
-        TgTypeParser tgTypeParser;
-        cout << tgTypeParser.parseArray<InlineQueryResult>(&TgTypeParser::parseInlineQueryResult, results) << endl;
+        // TgTypeParser tgTypeParser;
+        // cout << tgTypeParser.parseArray<InlineQueryResult>(&TgTypeParser::parseInlineQueryResult, results) << endl;
 
         try
         {
