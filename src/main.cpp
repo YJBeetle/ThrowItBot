@@ -137,7 +137,7 @@ string searchFileIdByUsername(const Api &api, const string &username)
     }
 }
 
-void pushStickerToResult(const Api &api, vector<InlineQueryResult::Ptr> &results, const string &username)
+bool pushStickerToResultByUsername(const Api &api, vector<InlineQueryResult::Ptr> &results, const string &username)
 {
     auto fileId = searchFileIdByUsername(api, username);
     if (!fileId.empty())
@@ -146,7 +146,9 @@ void pushStickerToResult(const Api &api, vector<InlineQueryResult::Ptr> &results
         result->id = username;
         result->stickerFileId = fileId;
         results.push_back(result);
+        return true;
     }
+    return false;
 }
 
 int main()
@@ -199,8 +201,26 @@ int main()
         vector<InlineQueryResult::Ptr> results; // 准备results
         try
         {
-            pushStickerToResult(bot.getApi(), results, inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username);
-            pushStickerToResult(bot.getApi(), results, inlineQuery->query);
+            string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
+            pushStickerToResultByUsername(bot.getApi(), results, username);
+            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
+            {
+                int i = 0;
+                for (auto user : usersData)
+                {
+                    if (user.first == username)
+                        continue;
+                    if (user.first.find(inlineQuery->query) != string::npos)
+                    {
+                        auto result = make_shared<InlineQueryResultCachedSticker>();
+                        result->id = user.first;
+                        result->stickerFileId = user.second;
+                        results.push_back(result);
+                    }
+                    if (i++ >= 20)
+                        break;
+                }
+            }
         }
         catch (TgException &e)
         {
