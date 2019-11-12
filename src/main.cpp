@@ -18,30 +18,28 @@ using namespace ArtRobot;
 string botUsername;
 
 unordered_map<string, string> usersData;
-string testFileId = "BQADBQADkgADR8RIVu_hHfP6s9kdFgQ"; // png
-// string testFileId = "BQADBQADfQADR8RQVpgZ-15uRDTlFgQ"; // webp
 
-// void readUsersData()
-// {
-//     ifstream in("UsersData.txt");
-//     if (in)
-//     {
-//         string username;
-//         string fileId;
-//         while (getline(in, username) && getline(in, fileId))
-//             usersData[username] = fileId;
-//     }
-// }
+void readUsersData()
+{
+    ifstream in("UsersData.txt");
+    if (in)
+    {
+        string username;
+        string fileId;
+        while (getline(in, username) && getline(in, fileId))
+            usersData[username] = fileId;
+    }
+}
 
-// void saveUsersData()
-// {
-//     ofstream out("UsersData.txt");
-//     for (auto &user : usersData)
-//     {
-//         out << user.first << endl;
-//         out << user.second << endl;
-//     }
-// }
+void saveUsersData()
+{
+    ofstream out("UsersData.txt");
+    for (auto &user : usersData)
+    {
+        out << user.first << endl;
+        out << user.second << endl;
+    }
+}
 
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 {
@@ -76,9 +74,6 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
         fileNew->data = renderer.getDataString();
         fileNew->mimeType = "image/png";
 
-        // 先丢一个
-        api.sendSticker(chatId, fileNew, 0, std::make_shared<GenericReply>(), true);
-
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
         string stickerName = username + "_by_" + botUsername;      // 贴纸名字
         auto stickerFile = api.uploadStickerFile(chatId, fileNew); // 上传贴纸
@@ -97,17 +92,60 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
             api.createNewStickerSet(chatId, stickerName, user->username.empty() ? "Throw" : "Throw @" + user->username, stickerFile->fileId, "🙃");
         }
 
-        api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true);
+        // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送一个贴纸地址
 
-        // cout << stickerFile << endl;
-        // cout << stickerFile->fileId << endl;
-        // testFileId = stickerFile->fileId;
-        // api.sendSticker(chatId, stickerFile->fileId, 0, std::make_shared<GenericReply>(), true);
-        // api.sendPhoto(chatId, fileNew, "", 0, std::make_shared<GenericReply>(), "", true);
+        auto stickerSet = api.getStickerSet(stickerName);
+        auto fileId = stickerSet->stickers[0]->fileId;
+        api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+
+        usersData[username] = fileId;
+        saveUsersData();
     }
     else
     {
         api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+    }
+}
+
+string searchFileIdByUsername(const Api &api, const string &username)
+{
+    auto s = usersData.find(username);
+    if (s != usersData.end())
+    {
+        return s->second;
+    }
+    else
+    {
+        string stickerName = username + "_by_" + botUsername; // 贴纸名字
+        try
+        {
+            auto stickerSet = api.getStickerSet(stickerName);
+            if (stickerSet->stickers.size())
+            {
+                auto fileId = stickerSet->stickers[0]->fileId;
+                usersData[username] = fileId;
+                saveUsersData();
+                return fileId;
+            }
+            else
+                return "";
+        }
+        catch (const std::exception &e)
+        {
+            return "";
+        }
+    }
+}
+
+void pushStickerToResult(const Api &api, vector<InlineQueryResult::Ptr> &results, const string &username)
+{
+    auto fileId = searchFileIdByUsername(api, username);
+    if (!fileId.empty())
+    {
+        auto result = make_shared<InlineQueryResultCachedSticker>();
+        result->id = username;
+        result->stickerFileId = fileId;
+        results.push_back(result);
     }
 }
 
@@ -116,7 +154,7 @@ int main()
     cout << "ThrowItBot start!" << endl;
 
     // init
-    // readUsersData();
+    readUsersData();
 
     string token = getenv("TOKEN");
     Bot bot(token);
@@ -155,38 +193,39 @@ int main()
         bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
     });
 
-    bot.getEvents().onCommand("test", [&bot](Message::Ptr message) {
-        bot.getApi().sendSticker(message->chat->id, testFileId, 0, std::make_shared<GenericReply>(), true);
-    });
-
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
         cout << "InlineQuery: " << inlineQuery->from->username << ": " << inlineQuery->query << endl;
 
-        // 贴图
-        auto result = make_shared<InlineQueryResultCachedSticker>();
-        result->id = "123456";
-        result->stickerFileId = testFileId;
-        cout << result->stickerFileId << endl;
+        vector<InlineQueryResult::Ptr> results; // 准备results
+        try
+        {
+            pushStickerToResult(bot.getApi(), results, inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username);
+            pushStickerToResult(bot.getApi(), results, inlineQuery->query);
+        }
+        catch (TgException &e)
+        {
+            auto text = make_shared<InputTextMessageContent>();
+            text->messageText = "aabbcc";
+            auto result = make_shared<InlineQueryResultArticle>();
+            result->title = "xxx";
+            result->id = "1234567";
+            result->inputMessageContent = text;
 
-        // // 文本
-        // auto text = make_shared<InputTextMessageContent>();
-        // text->messageText = "aabbcc";
-        // auto result = make_shared<InlineQueryResultArticle>();
-        // result->title = "xxx";
-        // result->id = "1234567";
-        // result->inputMessageContent = text;
+            results.push_back(result);
+        }
 
-        // results
-        vector<InlineQueryResult::Ptr> results;
-        results.push_back(result);
-
-        cout << (result) << endl;
+        // debug json
         TgTypeParser tgTypeParser;
         cout << tgTypeParser.parseArray<InlineQueryResult>(&TgTypeParser::parseInlineQueryResult, results) << endl;
 
-        bot.getApi().answerInlineQuery(inlineQuery->id, results);
-
-        cout << "onInlineQuery" << endl;
+        try
+        {
+            bot.getApi().answerInlineQuery(inlineQuery->id, results);
+        }
+        catch (TgException &e)
+        {
+            cerr << "InlineQuery error: " << e.what() << endl;
+        }
     });
 
     bot.getEvents().onChosenInlineResult([&bot](ChosenInlineResult::Ptr chosenInlineResult) {
