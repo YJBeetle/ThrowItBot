@@ -199,34 +199,43 @@ int main()
         cout << "InlineQuery: " << inlineQuery->from->username << ": " << inlineQuery->query << endl;
 
         vector<InlineQueryResult::Ptr> results; // 准备results
-        string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
-        pushStickerToResultByUsername(bot.getApi(), results, username);
-        if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
+
+        if (inlineQuery->query.c_str()[0] == '@') // 首位是@的话进行精确匹配
         {
-            int i = 0;
-            for (auto user : usersData)
+            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query.c_str() + 1))
             {
-                if (user.first == username)
-                    continue;
-                if (user.first.find(inlineQuery->query) != string::npos)
-                {
-                    auto result = make_shared<InlineQueryResultCachedSticker>();
-                    result->id = user.first;
-                    result->stickerFileId = user.second;
-                    results.push_back(result);
-                }
-                if (i++ >= 20)
-                    break;
+                auto text = make_shared<InputTextMessageContent>();
+                text->messageText = "aabbcc";
+                auto result = make_shared<InlineQueryResultArticle>();
+                result->title = "xxx";
+                result->id = "1234567";
+                result->inputMessageContent = text;
+                results.push_back(result);
             }
         }
-
-        // auto text = make_shared<InputTextMessageContent>();
-        // text->messageText = "aabbcc";
-        // auto result = make_shared<InlineQueryResultArticle>();
-        // result->title = "xxx";
-        // result->id = "1234567";
-        // result->inputMessageContent = text;
-        // results.push_back(result);
+        else
+        {
+            string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
+            pushStickerToResultByUsername(bot.getApi(), results, username);
+            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
+            {
+                int i = 0;
+                for (auto user : usersData)
+                {
+                    if (user.first == username)
+                        continue;
+                    if (user.first.find(inlineQuery->query) != string::npos)
+                    {
+                        auto result = make_shared<InlineQueryResultCachedSticker>();
+                        result->id = user.first;
+                        result->stickerFileId = user.second;
+                        results.push_back(result);
+                    }
+                    if (i++ >= 20)
+                        break;
+                }
+            }
+        }
 
         // debug json
         // TgTypeParser tgTypeParser;
