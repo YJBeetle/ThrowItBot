@@ -213,8 +213,6 @@ int main()
         {
             cout << "ThrowAt: " << message->text << endl;
 
-            bot.getApi().sendChatAction(message->chat->id, "upload_photo"); // 设置正在发送
-
             string username = message->text.c_str() + 1;
 
             CurlHttpClient curl;
@@ -228,6 +226,8 @@ int main()
                 startpos += UserImgSearchStrLen;
                 auto endpos = html.find_first_of("\"", startpos);
                 string imgurl = html.substr(startpos, endpos - startpos);
+
+                bot.getApi().sendChatAction(message->chat->id, "upload_photo"); // 设置正在发送
 
                 string img = curl.makeRequest(imgurl, args);
 
