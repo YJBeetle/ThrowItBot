@@ -222,20 +222,36 @@ int main()
             vector<HttpReqArg> args;
             string html = curl.makeRequest(url, args);
 
-            auto startpos = html.find(UserImgSearchStr) + UserImgSearchStrLen;
-            auto endpos = html.find_first_of("\"", startpos);
-            string imgurl = html.substr(startpos, endpos - startpos);
-
-            string img = curl.makeRequest(imgurl, args);
-
-            try
+            auto startpos = html.find(UserImgSearchStr);
+            if (startpos != string::npos)
             {
-                throwItImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
-                bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+                startpos += UserImgSearchStrLen;
+                auto endpos = html.find_first_of("\"", startpos);
+                string imgurl = html.substr(startpos, endpos - startpos);
+
+                string img = curl.makeRequest(imgurl, args);
+
+                try
+                {
+                    throwItImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
+                    bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+                }
+                catch (TgException &e)
+                {
+                    cerr << "throwItImage error: " << e.what() << endl;
+                }
             }
-            catch (TgException &e)
+            else
             {
-                cerr << "sendMessage error: " << e.what() << endl;
+                cerr << "No User." << endl;
+                try
+                {
+                    bot.getApi().sendMessage(message->chat->id, "No User.", false, 0, std::make_shared<GenericReply>(), "", true);
+                }
+                catch (TgException &e)
+                {
+                    cerr << "sendMessage error: " << e.what() << endl;
+                }
             }
             return;
         }
