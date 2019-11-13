@@ -255,10 +255,10 @@ int main()
             if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query.c_str() + 1))
             {
                 auto text = make_shared<InputTextMessageContent>();
-                text->messageText = "aabbcc";
+                text->messageText = "@" + botUsername;
                 auto result = make_shared<InlineQueryResultArticle>();
-                result->title = "xxx";
-                result->id = "1234567";
+                result->title = "No username found";
+                result->id = "nouser";
                 result->inputMessageContent = text;
                 results.push_back(result);
             }
