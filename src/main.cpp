@@ -336,7 +336,7 @@ int main()
                     result->stickerFileId = user.second;
                     results.push_back(result);
                 }
-                if (i++ >= 20) // 只显示前20个结果
+                if (i++ >= 19) // 只显示前20个结果
                     break;
             }
         }
