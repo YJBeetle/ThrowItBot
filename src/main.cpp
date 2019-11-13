@@ -45,6 +45,57 @@ void saveUsersData()
     }
 }
 
+void throwItImage(const Api &api, int64_t chatId, string username, const string &title, const string &userImgData)
+{
+    auto body = Component::Group("body");                                      // body
+    auto bg = make_shared<Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
+    body.addChild(bg);                                                         // Show bg
+
+    vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
+    Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
+    auto userImg = make_shared<Component::Image>("userimg", 18.56,
+                                                 180.98,
+                                                 135.53,
+                                                 135.53,
+                                                 -160,
+                                                 userImgMat);
+    auto mask = make_shared<Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", userImg); // Mask
+    body.addChild(mask);                                                                             // Show mask
+
+    Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72); // 渲染png
+    renderer.render(body.getSurface());
+    auto fileNew = make_shared<InputFile>();
+    fileNew->data = renderer.getDataString();
+    fileNew->mimeType = "image/png";
+
+    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
+    string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
+    auto stickerFile = api.uploadStickerFile(chatId, fileNew);                // 上传贴纸
+    try
+    {
+        // 如果存在则删除贴纸包内贴纸
+        auto stickerSet = api.getStickerSet(stickerName);
+        // 删除贴纸
+        for (auto sticker : stickerSet->stickers)
+            api.deleteStickerFromSet(sticker->fileId);
+        api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃");
+    }
+    catch (TgException &e)
+    {
+        // 没有找到贴纸 创建
+        api.createNewStickerSet(chatId, stickerName, title, stickerFile->fileId, "🙃");
+    }
+
+    // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送一个贴纸地址
+
+    auto stickerSet = api.getStickerSet(stickerName);
+    auto fileId = stickerSet->stickers[0]->fileId;
+    api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+
+    usersData[username] = fileId;
+    saveUsersData();
+}
+
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 {
     cout << "Throw: " << user->username << endl;
@@ -59,54 +110,9 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
         auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
         auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
 
-        auto body = Component::Group("body");                                      // body
-        auto bg = make_shared<Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
-        body.addChild(bg);                                                         // Show bg
-
-        vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
-        Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
-        auto userImg = make_shared<Component::Image>("userimg", 18.56,
-                                                     180.98,
-                                                     135.53,
-                                                     135.53,
-                                                     -160,
-                                                     userImgMat);
-        auto mask = make_shared<Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", userImg); // Mask
-        body.addChild(mask);                                                                             // Show mask
-
-        Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72); // 渲染png
-        renderer.render(body.getSurface());
-        auto fileNew = make_shared<InputFile>();
-        fileNew->data = renderer.getDataString();
-        fileNew->mimeType = "image/png";
-
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
-        std::transform(username.begin(), username.end(), username.begin(), ::tolower);
-        string stickerName = username + "_by_" + botUsername;      // 贴纸名字
-        auto stickerFile = api.uploadStickerFile(chatId, fileNew); // 上传贴纸
-        try
-        {
-            // 如果存在则删除贴纸包内贴纸
-            auto stickerSet = api.getStickerSet(stickerName);
-            // 删除贴纸
-            for (auto sticker : stickerSet->stickers)
-                api.deleteStickerFromSet(sticker->fileId);
-            api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃");
-        }
-        catch (TgException &e)
-        {
-            // 没有找到贴纸 创建
-            api.createNewStickerSet(chatId, stickerName, user->username.empty() ? "Throw" : "Throw @" + user->username, stickerFile->fileId, "🙃");
-        }
-
-        // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送一个贴纸地址
-
-        auto stickerSet = api.getStickerSet(stickerName);
-        auto fileId = stickerSet->stickers[0]->fileId;
-        api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
-
-        usersData[username] = fileId;
-        saveUsersData();
+        string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
+        throwItImage(api, chatId, username, title, userImgData);
     }
     else
     {
@@ -202,7 +208,7 @@ int main()
         if (message->text.c_str()[0] == '@') // 首位是@的话去网页拉取头像
         {
             string username = message->text.c_str() + 1;
-            std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+            transform(username.begin(), username.end(), username.begin(), ::tolower);
 
             CurlHttpClient curl;
             string url = "https://t.me/" + username;
@@ -213,11 +219,7 @@ int main()
             auto endpos = html.find_first_of("\"", startpos);
             string imgurl = html.substr(startpos, endpos - startpos);
 
-            cout << imgurl << endl;
-
             string img = curl.makeRequest(imgurl, args);
-
-            cout << img << endl;
 
             try
             {
@@ -307,7 +309,7 @@ int main()
         else
         {
             string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
-            std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+            transform(username.begin(), username.end(), username.begin(), ::tolower);
             pushStickerToResultByUsername(bot.getApi(), results, username); // 查询者自己的username
             if (!pushStickerToResultByUsername(bot.getApi(), results, query))
             {
