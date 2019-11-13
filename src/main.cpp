@@ -164,16 +164,30 @@ int main()
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
         cout << "Message: " << message->chat->username << ": " << message->text << endl;
 
-        if (message->forwardFrom) // 是转发的消息
+        if (message->forwardDate) // 是转发的消息
         {
-            try
+            if (message->forwardFrom)
             {
-                throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
-                bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+                try
+                {
+                    throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
+                    bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+                }
+                catch (TgException &e)
+                {
+                    cerr << "Throw error: " << e.what() << endl;
+                }
             }
-            catch (TgException &e)
+            else
             {
-                cerr << "Throw error: " << e.what() << endl;
+                try
+                {
+                    bot.getApi().sendMessage(message->chat->id, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.", false, 0, std::make_shared<GenericReply>(), "", true);
+                }
+                catch (TgException &e)
+                {
+                    cerr << "sendMessage error: " << e.what() << endl;
+                }
             }
             return;
         }
@@ -183,9 +197,10 @@ int main()
             StringTools::startsWith(message->text, "/help") ||
             StringTools::startsWith(message->text, "/throw") ||
             false)
-        {
+        { // 如果是已知的指令则跳过
             return;
         }
+
         try
         {
             bot.getApi().sendMessage(message->chat->id, "Do you need /help ?", false, 0, std::make_shared<GenericReply>(), "", true);
