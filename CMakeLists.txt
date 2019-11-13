@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 project(TG_ThrowItBot)
 
-set(CMAKE_CXX_FLAGS "-g")
+# set(CMAKE_CXX_FLAGS "-g")
 
 # sources
 include_directories("3rdParty/ArtRobot/include")
