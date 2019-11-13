@@ -47,6 +47,10 @@ void saveUsersData()
 
 void throwItImage(const Api &api, int64_t chatId, string username, const string &title, const string &userImgData)
 {
+    cout << "ThrowImage: " << title << endl;
+
+    api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
+
     auto body = Component::Group("body");                                      // body
     auto bg = make_shared<Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
     body.addChild(bg);                                                         // Show bg
@@ -207,8 +211,11 @@ int main()
 
         if (message->text.c_str()[0] == '@') // 首位是@的话去网页拉取头像
         {
+            cout << "ThrowAt: " << message->text << endl;
+
+            bot.getApi().sendChatAction(message->chat->id, "upload_photo"); // 设置正在发送
+
             string username = message->text.c_str() + 1;
-            transform(username.begin(), username.end(), username.begin(), ::tolower);
 
             CurlHttpClient curl;
             string url = "https://t.me/" + username;
@@ -223,7 +230,8 @@ int main()
 
             try
             {
-                bot.getApi().sendMessage(message->chat->id, "Throw " + username + "(Not yet developed)", false, 0, std::make_shared<GenericReply>(), "", true);
+                throwItImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
+                bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
             }
             catch (TgException &e)
             {
