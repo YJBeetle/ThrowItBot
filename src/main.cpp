@@ -17,8 +17,10 @@ using namespace cv;
 using namespace TgBot;
 using namespace ArtRobot;
 
-string botUsername;
+const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
+const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
+string botUsername;
 unordered_map<string, string> usersData;
 
 void readUsersData()
@@ -193,6 +195,37 @@ int main()
                 {
                     cerr << "sendMessage error: " << e.what() << endl;
                 }
+            }
+            return;
+        }
+
+        if (message->text.c_str()[0] == '@') // 首位是@的话去网页拉取头像
+        {
+            string username = message->text.c_str() + 1;
+            std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+
+            CurlHttpClient curl;
+            string url = "https://t.me/" + username;
+            vector<HttpReqArg> args;
+            string html = curl.makeRequest(url, args);
+
+            auto startpos = html.find(UserImgSearchStr) + UserImgSearchStrLen;
+            auto endpos = html.find_first_of("\"", startpos);
+            string imgurl = html.substr(startpos, endpos - startpos);
+
+            cout << imgurl << endl;
+
+            string img = curl.makeRequest(imgurl, args);
+
+            cout << img << endl;
+
+            try
+            {
+                bot.getApi().sendMessage(message->chat->id, "Throw " + username + "(Not yet developed)", false, 0, std::make_shared<GenericReply>(), "", true);
+            }
+            catch (TgException &e)
+            {
+                cerr << "sendMessage error: " << e.what() << endl;
             }
             return;
         }
