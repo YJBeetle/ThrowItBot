@@ -321,16 +321,7 @@ int main()
 
         if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
         {
-            if (!pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1))
-            {
-                auto text = make_shared<InputTextMessageContent>();
-                text->messageText = "@" + botUsername;
-                auto result = make_shared<InlineQueryResultArticle>();
-                result->title = "No username found";
-                result->id = "nouser";
-                result->inputMessageContent = text;
-                results.push_back(result);
-            }
+            pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1);
         }
         else
         {
@@ -348,6 +339,17 @@ int main()
                 if (i++ >= 20) // 只显示前20个结果
                     break;
             }
+        }
+
+        if (results.size() == 0)
+        {
+            auto text = make_shared<InputTextMessageContent>();
+            text->messageText = "@" + botUsername;
+            auto result = make_shared<InlineQueryResultArticle>();
+            result->title = "No user found";
+            result->id = "nouser";
+            result->inputMessageContent = text;
+            results.push_back(result);
         }
 
         // debug json
