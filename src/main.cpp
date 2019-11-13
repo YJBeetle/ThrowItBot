@@ -166,8 +166,15 @@ int main()
 
         if (message->forwardFrom) // 是转发的消息
         {
-            throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
-            bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+            try
+            {
+                throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
+                bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+            }
+            catch (TgException &e)
+            {
+                cerr << "Throw error: " << e.what() << endl;
+            }
             return;
         }
 
@@ -179,20 +186,48 @@ int main()
         {
             return;
         }
-        bot.getApi().sendMessage(message->chat->id, "Do you need /help ?", false, 0, std::make_shared<GenericReply>(), "", true);
+        try
+        {
+            bot.getApi().sendMessage(message->chat->id, "Do you need /help ?", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "sendMessage error: " << e.what() << endl;
+        }
     });
 
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) {
-        bot.getApi().sendMessage(message->chat->id, "You can say /throw to throw youself!\nAnd you can forward someone's message for me to throw him/her.", false, 0, std::make_shared<GenericReply>(), "", true);
+        try
+        {
+            bot.getApi().sendMessage(message->chat->id, "You can say /throw to throw youself!\nAnd you can forward someone's message for me to throw him/her.", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "sendMessage error: " << e.what() << endl;
+        }
     });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message) {
-        bot.getApi().sendMessage(message->chat->id, "Do you need to be /throw ?", false, 0, std::make_shared<GenericReply>(), "", true);
+        try
+        {
+            bot.getApi().sendMessage(message->chat->id, "Do you need to be /throw ?", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "sendMessage error: " << e.what() << endl;
+        }
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
-        throwIt(bot.getApi(), message->chat->id, message->from);
-        bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
+        try
+        {
+            throwIt(bot.getApi(), message->chat->id, message->from);
+            bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "Throw error: " << e.what() << endl;
+        }
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
