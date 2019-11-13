@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <algorithm>
 
 #include <unistd.h>
 
@@ -77,6 +79,7 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
         fileNew->mimeType = "image/png";
 
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
+        std::transform(username.begin(), username.end(), username.begin(), ::tolower);
         string stickerName = username + "_by_" + botUsername;      // 贴纸名字
         auto stickerFile = api.uploadStickerFile(chatId, fileNew); // 上传贴纸
         try
@@ -252,9 +255,12 @@ int main()
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
-        if (inlineQuery->query.c_str()[0] == '@') // 首位是@的话进行精确匹配
+        string query = inlineQuery->query;
+        transform(query.begin(), query.end(), query.begin(), ::tolower); // 转小写
+
+        if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
         {
-            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query.c_str() + 1))
+            if (!pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1))
             {
                 auto text = make_shared<InputTextMessageContent>();
                 text->messageText = "@" + botUsername;
@@ -268,15 +274,16 @@ int main()
         else
         {
             string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
-            pushStickerToResultByUsername(bot.getApi(), results, username);
-            if (!pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query))
+            std::transform(username.begin(), username.end(), username.begin(), ::tolower);
+            pushStickerToResultByUsername(bot.getApi(), results, username); // 查询者自己的username
+            if (!pushStickerToResultByUsername(bot.getApi(), results, query))
             {
                 int i = 0;
                 for (auto user : usersData)
                 {
                     if (user.first == username)
                         continue;
-                    if (user.first.find(inlineQuery->query) != string::npos)
+                    if (user.first.find(query) != string::npos)
                     {
                         auto result = make_shared<InlineQueryResultCachedSticker>();
                         result->id = user.first;
