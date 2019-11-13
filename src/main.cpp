@@ -262,7 +262,9 @@ int main()
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) {
         try
         {
-            bot.getApi().sendMessage(message->chat->id, "You can say /throw to throw youself!\nAnd you can forward someone's message for me to throw him/her.", false, 0, std::make_shared<GenericReply>(), "", true);
+            // 您可以说/throw扔自己！
+            // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
+            bot.getApi().sendMessage(message->chat->id, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.", false, 0, std::make_shared<GenericReply>(), "", true);
         }
         catch (TgException &e)
         {
