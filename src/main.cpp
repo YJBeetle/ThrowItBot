@@ -334,26 +334,19 @@ int main()
         }
         else
         {
-            string username = inlineQuery->from->username.empty() ? "user" + to_string(inlineQuery->from->id) : inlineQuery->from->username;
-            transform(username.begin(), username.end(), username.begin(), ::tolower);
-            pushStickerToResultByUsername(bot.getApi(), results, username); // 查询者自己的username
-            if (!pushStickerToResultByUsername(bot.getApi(), results, query))
+            // 快速搜索
+            int i = 0;
+            for (auto user : usersData)
             {
-                int i = 0;
-                for (auto user : usersData)
+                if (user.first.find(query) != string::npos)
                 {
-                    if (user.first == username)
-                        continue;
-                    if (user.first.find(query) != string::npos)
-                    {
-                        auto result = make_shared<InlineQueryResultCachedSticker>();
-                        result->id = user.first;
-                        result->stickerFileId = user.second;
-                        results.push_back(result);
-                    }
-                    if (i++ >= 20)
-                        break;
+                    auto result = make_shared<InlineQueryResultCachedSticker>();
+                    result->id = user.first;
+                    result->stickerFileId = user.second;
+                    results.push_back(result);
                 }
+                if (i++ >= 20) // 只显示前20个结果
+                    break;
             }
         }
 
