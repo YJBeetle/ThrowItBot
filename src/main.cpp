@@ -43,6 +43,8 @@ void saveUsersData()
 
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 {
+    cout << "Throw: " << user->username << endl;
+
     api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
 
     auto userPhotosInfo = api.getUserProfilePhotos(user->id);
