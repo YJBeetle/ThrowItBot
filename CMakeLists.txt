@@ -82,14 +82,6 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "    libraries: ${OpenCV_LIBS}")
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-# Find OpenCV
-find_package(OpenCV REQUIRED)
-message(STATUS "OpenCV library status:")
-message(STATUS "    version: ${OpenCV_VERSION}")
-message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
-message(STATUS "    libraries: ${OpenCV_LIBS}")
-include_directories(${OpenCV_INCLUDE_DIRS})
-
 ## libwebp
 pkg_check_modules(WEBP libwebp)
 if (NOT WEBP_FOUND)
