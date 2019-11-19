@@ -6,23 +6,20 @@ Throw It!
 
 ```
 sudo apt-get install g++ make binutils cmake
-sudo apt-get install libssl-dev libboost-system-dev zlib1g-dev
-sudo apt-get install libcairo2-dev libopencv-dev
+sudo apt-get install libssl-dev libboost-system-dev zlib1g-dev libcurl4-gnutls-dev
+sudo apt-get install libcairo2-dev libopencv-dev librsvg2-dev libwebp-dev
 ```
 
 ```
 brew install openssl zlib cmake boost@1.59
 ```
 
-```
-git clone https://github.com/reo7sp/tgbot-cpp
-cd tgbot-cpp
-cmake .
-make -j4
-sudo make install
-```
+tgbot-cpp:
+git clone https://github.com/YJBeetle/tgbot-cpp.git
+git@github.com:YJBeetle/tgbot-cpp.git
 
-ArtRobot: https://gitlab.com/project-null-plus-1/art_robot
+ArtRobot: 
+https://gitlab.com/project-null-plus-1/art_robot
 
 ## Build&&Test
 

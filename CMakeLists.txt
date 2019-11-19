@@ -10,16 +10,6 @@ project(TG_ThrowItBot)
 include_directories("3rdParty/ArtRobot/include")
 set(SRC_LIST
     src/main.cpp
-    3rdParty/ArtRobot/src/Component/Base.cpp
-    3rdParty/ArtRobot/src/Component/Group.cpp
-    3rdParty/ArtRobot/src/Component/Image.cpp
-    3rdParty/ArtRobot/src/Component/ImageMask.cpp
-    3rdParty/ArtRobot/src/Component/Rectangle.cpp
-    3rdParty/ArtRobot/src/Component/Repeat.cpp
-    3rdParty/ArtRobot/src/Component/Svg.cpp
-    3rdParty/ArtRobot/src/Component/Text.cpp
-    3rdParty/ArtRobot/src/Types/Color.cpp
-    3rdParty/ArtRobot/src/Renderer.cpp
 )
 
 # libs
@@ -126,6 +116,7 @@ set(LIB_LIST
     rsvg-2
     ${OpenCV_LIBS}
     ${WEBP_LIBRARIES}
+    ArtRobot
 )
 
 # building project
