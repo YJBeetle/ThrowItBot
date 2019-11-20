@@ -7,10 +7,7 @@ project(TG_ThrowItBot)
 # set(CMAKE_CXX_FLAGS "-g")
 
 # sources
-include_directories("3rdParty/ArtRobot/include")
-set(SRC_LIST
-    src/main.cpp
-)
+aux_source_directory(./src SRC_LIST)
 
 # libs
 ## threads
@@ -39,7 +36,7 @@ else()
 endif()
 include_directories(${Boost_INCLUDE_DIR})
 
-## TgBot
+## local
 include_directories("/usr/local/include")
 link_directories("/usr/local/lib")
 

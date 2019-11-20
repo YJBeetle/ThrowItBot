@@ -1,16 +1,13 @@
 #include <vector>
-#include <unordered_map>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <algorithm>
 
-#include <unistd.h>
-
 #include <opencv2/opencv.hpp>
 #include <tgbot/tgbot.h>
-#include "ArtRobot/ArtRobot.h"
-#include "ArtRobot/ArtRobot.h"
+#include <ArtRobot/ArtRobot.h>
+
+#include "UsersData.h"
 
 using namespace std;
 using namespace cv;
@@ -21,29 +18,8 @@ const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
 const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
 string botUsername;
-unordered_map<string, string> usersData;
 
-void readUsersData()
-{
-    ifstream in("UsersData.txt");
-    if (in)
-    {
-        string username;
-        string fileId;
-        while (getline(in, username) && getline(in, fileId))
-            usersData[username] = fileId;
-    }
-}
-
-void saveUsersData()
-{
-    ofstream out("UsersData.txt");
-    for (auto &user : usersData)
-    {
-        out << user.first << endl;
-        out << user.second << endl;
-    }
-}
+UsersData usersData;
 
 void throwItImage(const Api &api, int64_t chatId, string username, const string &title, const string &userImgData)
 {
@@ -96,8 +72,7 @@ void throwItImage(const Api &api, int64_t chatId, string username, const string 
     auto fileId = stickerSet->stickers[0]->fileId;
     api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
 
-    usersData[username] = fileId;
-    saveUsersData();
+usersData.set(username ,fileId);
 }
 
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)
@@ -126,8 +101,8 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 
 string searchFileIdByUsername(const Api &api, const string &username)
 {
-    auto s = usersData.find(username);
-    if (s != usersData.end())
+    auto s = usersData.data.find(username);
+    if (s != usersData.data.end())
     {
         return s->second;
     }
@@ -140,8 +115,7 @@ string searchFileIdByUsername(const Api &api, const string &username)
             if (stickerSet->stickers.size())
             {
                 auto fileId = stickerSet->stickers[0]->fileId;
-                usersData[username] = fileId;
-                saveUsersData();
+                usersData.set(username, fileId);
                 return fileId;
             }
             else
@@ -173,7 +147,7 @@ int main()
     cout << "ThrowItBot start!" << endl;
 
     // init
-    readUsersData();
+    usersData.readFromFile();
 
     string token = getenv("TOKEN");
     Bot bot(token);
@@ -327,7 +301,7 @@ int main()
         {
             // 快速搜索
             int i = 0;
-            for (auto user : usersData)
+            for (auto user : usersData.data)
             {
                 if (user.first.find(query) != string::npos)
                 {
