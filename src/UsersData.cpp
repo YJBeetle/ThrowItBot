@@ -32,4 +32,3 @@ void UsersData::saveToFile()
     }
 }
 
-

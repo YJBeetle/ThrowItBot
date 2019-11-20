@@ -7,9 +7,8 @@
 class UsersData
 {
 private:
- 
 public:
-std::unordered_map<std::string, std::string> data;
+    std::unordered_map<std::string, std::string> data;
 
     UsersData();
     ~UsersData();
@@ -17,11 +16,9 @@ std::unordered_map<std::string, std::string> data;
     void readFromFile();
     void saveToFile();
 
-
-    inline void set(const std::string &user,const std::string &fileId)
+    inline void set(const std::string &user, const std::string &fileId)
     {
-    data[user] = fileId;
-    saveToFile();
+        data[user] = fileId;
+        saveToFile();
     }
-
 };
