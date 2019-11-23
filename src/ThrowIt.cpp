@@ -155,20 +155,46 @@ void throwUser(const Api &api, int64_t chatId,
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
-    auto userPhotosInfo = api.getUserProfilePhotos(user->id);
+    UserProfilePhotos::Ptr userPhotosInfo;
 
-    if (userPhotosInfo->totalCount) // 照片数不为0
+    try
     {
-        auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
-        auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
-        auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
+        userPhotosInfo = api.getUserProfilePhotos(user->id);
+    }
+    catch (TgException &e)
+    {
+        LogE("throwUser: getUserProfilePhotos error");
+        return;
+    }
 
+    if (userPhotosInfo && userPhotosInfo->totalCount) // 照片数不为0
+    {
+        string userPhotosData;
+        try
+        {
+            auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
+            auto userPhotosPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
+            userPhotosData = api.downloadFile(userPhotosPath->filePath);                                    // 图像数据（maybe jpg）
+        }
+        catch (TgException &e)
+        {
+            LogE("throwUser: Get user photo error.");
+            return;
+        }
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
         string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        throwImage(api, chatId, username, title, userImgData);
+        throwImage(api, chatId, username, title, userPhotosData);
     }
     else
     {
-        api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+        try
+        {
+            api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            LogE("throwUser: sendMessage error");
+            return;
+        }
     }
 }
