@@ -37,7 +37,11 @@ void throwImage(const Api &api, int64_t chatId,
                 const string &__title,
                 const string &__imgData)
 {
-    LogV("throwImage: %s", __username.c_str());
+    string username = __username;
+    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
+    string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
+
+    LogV("throwImage: %s", username.c_str());
 
     try
     {
@@ -56,10 +60,6 @@ void throwImage(const Api &api, int64_t chatId,
     auto stickerPngFile = make_shared<InputFile>(); // 待上传的PNG文件
     stickerPngFile->data = renderer.getDataString();
     stickerPngFile->mimeType = "image/png";
-
-    string username = __username;
-    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
-    string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
 
     File::Ptr stickerFile;
     try
