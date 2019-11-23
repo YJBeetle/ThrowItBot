@@ -39,7 +39,14 @@ void throwImage(const Api &api, int64_t chatId,
 {
     LogV("throwImage: %s", __username.c_str());
 
-    api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
+    try
+    {
+        api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
+    }
+    catch (TgException &e)
+    {
+        LogW("throwImage: sendChatAction error");
+    }
 
     auto body = drawThrowImage(__imgData); // 绘制图像
 
@@ -53,27 +60,83 @@ void throwImage(const Api &api, int64_t chatId,
     string username = __username;
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
     string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
-    auto stickerFile = api.uploadStickerFile(chatId, stickerPngFile);         // 上传贴纸
+
+    File::Ptr stickerFile;
     try
     {
-        // 如果存在则删除贴纸包内贴纸
-        auto stickerSet = api.getStickerSet(stickerName);
-        // 删除贴纸
-        for (auto sticker : stickerSet->stickers)
-            api.deleteStickerFromSet(sticker->fileId);
-        api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃");
+        stickerFile = api.uploadStickerFile(chatId, stickerPngFile); // 上传贴纸
     }
     catch (TgException &e)
     {
-        // 没有找到贴纸 创建
-        api.createNewStickerSet(chatId, stickerName, __title, stickerFile->fileId, "🙃");
+        LogE("throwImage: uploadStickerFile error");
+        return;
     }
 
-    // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送一个贴纸地址
+    StickerSet::Ptr stickerSet;
+    try
+    {
+        stickerSet = api.getStickerSet(stickerName); // 尝试获取贴纸包
+    }
+    catch (TgException &e)
+    {
+        LogI("throwImage: getStickerSet error, no sticker, create it.");
+    }
 
-    auto stickerSet = api.getStickerSet(stickerName);
-    auto fileId = stickerSet->stickers[0]->fileId;
-    api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+    if (stickerSet)
+    { // 存在贴纸包
+        try
+        {
+            api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃"); // 添加贴纸到贴纸包
+        }
+        catch (TgException &e)
+        {
+            LogE("throwImage: addStickerToSet error");
+            return;
+        }
+        for (auto sticker : stickerSet->stickers)
+            try
+            {
+                api.deleteStickerFromSet(sticker->fileId); // 删除所有其他贴纸
+            }
+            catch (TgException &e)
+            {
+                LogW("throwImage: deleteStickerFromSet error");
+            }
+    }
+    else
+    { // 没有找到贴纸 创建
+        try
+        {
+            api.createNewStickerSet(chatId, stickerName, __title, stickerFile->fileId, "🙃"); // 创建贴纸包并添加第一个贴纸
+        }
+        catch (TgException &e)
+        {
+            LogE("throwImage: createNewStickerSet error");
+            return;
+        }
+    }
 
-    usersData.set(username, fileId);
+    string stickerFileId;
+    try
+    {
+        stickerFileId = api.getStickerSet(stickerName)->stickers[0]->fileId;
+    }
+    catch (TgException &e)
+    {
+        LogE("throwImage: getStickerSet error");
+        return;
+    }
+
+    usersData.set(username, stickerFileId);
+
+    try
+    {
+        // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送贴纸地址
+        api.sendSticker(chatId, stickerFileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+    }
+    catch (TgException &e)
+    {
+        LogE("throwImage: sendSticker error");
+        return;
+    }
 }
