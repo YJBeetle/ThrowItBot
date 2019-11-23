@@ -14,7 +14,6 @@
 using namespace std;
 using namespace cv;
 using namespace TgBot;
-using namespace ArtRobot;
 
 const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
 const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;

@@ -6,41 +6,54 @@
 using namespace std;
 using namespace cv;
 using namespace TgBot;
-using namespace ArtRobot;
 
+// 用ArtRobot绘制一张丢的图像
+shared_ptr<ArtRobot::Component::Base> drawThrowImage(const string &__imgData)
+{
+    vector<unsigned char> imgVector(__imgData.begin(), __imgData.end()); // 图片转为vector
+    Mat imgMat = imdecode(imgVector, IMREAD_COLOR);                      // 图片转为Mat
+
+    // 开始ArtRobot绘图
+
+    auto bg = make_shared<ArtRobot::Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
+
+    auto img = make_shared<ArtRobot::Component::Image>("img", // img
+                                                       18.56, 180.98,
+                                                       135.53, 135.53,
+                                                       -160,
+                                                       imgMat);
+
+    auto mask = make_shared<ArtRobot::Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", img); // Mask
+
+    auto body = make_shared<ArtRobot::Component::Group>("body"); // body
+    body->addChild(bg);
+    body->addChild(mask);
+    return body;
+}
+
+// 向指定的chatId丢一张图
 void throwImage(const Api &api, int64_t chatId,
                 const string &__username,
                 const string &__title,
-                const string &__ImgData)
-{ // 向指定的chatId丢一张图
+                const string &__imgData)
+{
     LogV("throwImage: %s", __username.c_str());
+
     api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
 
-    auto body = Component::Group("body");                                      // body
-    auto bg = make_shared<Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
-    body.addChild(bg);                                                         // Show bg
+    auto body = drawThrowImage(__imgData); // 绘制图像
 
-    vector<unsigned char> userImgVector(__ImgData.begin(), __ImgData.end()); // 图片转为vector
-    Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
-    auto userImg = make_shared<Component::Image>("userimg", 18.56,
-                                                 180.98,
-                                                 135.53,
-                                                 135.53,
-                                                 -160,
-                                                 userImgMat);
-    auto mask = make_shared<Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", userImg); // Mask
-    body.addChild(mask);                                                                             // Show mask
+    ArtRobot::Renderer renderer(ArtRobot::OutputTypePng, 512, 512, ArtRobot::Renderer::PX, 72); // 渲染png
+    renderer.render(body->getSurface());
 
-    Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72); // 渲染png
-    renderer.render(body.getSurface());
-    auto fileNew = make_shared<InputFile>();
-    fileNew->data = renderer.getDataString();
-    fileNew->mimeType = "image/png";
+    auto stickerPngFile = make_shared<InputFile>(); // 待上传的PNG文件
+    stickerPngFile->data = renderer.getDataString();
+    stickerPngFile->mimeType = "image/png";
 
     string username = __username;
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
     string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
-    auto stickerFile = api.uploadStickerFile(chatId, fileNew);                // 上传贴纸
+    auto stickerFile = api.uploadStickerFile(chatId, stickerPngFile);         // 上传贴纸
     try
     {
         // 如果存在则删除贴纸包内贴纸
