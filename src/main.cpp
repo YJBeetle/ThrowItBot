@@ -8,6 +8,8 @@
 #include <ArtRobot/ArtRobot.h>
 
 #include "UsersData.h"
+#include "ThrowIt.h"
+#include "Global.h"
 
 using namespace std;
 using namespace cv;
@@ -17,63 +19,8 @@ using namespace ArtRobot;
 const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
 const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
-string botUsername;
-
+std::string botUsername;
 UsersData usersData;
-
-void throwItImage(const Api &api, int64_t chatId, string username, const string &title, const string &userImgData)
-{
-    cout << "ThrowImage: " << title << endl;
-
-    api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
-
-    auto body = Component::Group("body");                                      // body
-    auto bg = make_shared<Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
-    body.addChild(bg);                                                         // Show bg
-
-    vector<unsigned char> userImgVector(userImgData.begin(), userImgData.end()); // 用户头像
-    Mat userImgMat = imdecode(userImgVector, IMREAD_COLOR);
-    auto userImg = make_shared<Component::Image>("userimg", 18.56,
-                                                 180.98,
-                                                 135.53,
-                                                 135.53,
-                                                 -160,
-                                                 userImgMat);
-    auto mask = make_shared<Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", userImg); // Mask
-    body.addChild(mask);                                                                             // Show mask
-
-    Renderer renderer(OutputTypePng, 512, 512, Renderer::PX, 72); // 渲染png
-    renderer.render(body.getSurface());
-    auto fileNew = make_shared<InputFile>();
-    fileNew->data = renderer.getDataString();
-    fileNew->mimeType = "image/png";
-
-    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
-    string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
-    auto stickerFile = api.uploadStickerFile(chatId, fileNew);                // 上传贴纸
-    try
-    {
-        // 如果存在则删除贴纸包内贴纸
-        auto stickerSet = api.getStickerSet(stickerName);
-        // 删除贴纸
-        for (auto sticker : stickerSet->stickers)
-            api.deleteStickerFromSet(sticker->fileId);
-        api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃");
-    }
-    catch (TgException &e)
-    {
-        // 没有找到贴纸 创建
-        api.createNewStickerSet(chatId, stickerName, title, stickerFile->fileId, "🙃");
-    }
-
-    // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送一个贴纸地址
-
-    auto stickerSet = api.getStickerSet(stickerName);
-    auto fileId = stickerSet->stickers[0]->fileId;
-    api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
-
-    usersData.set(username, fileId);
-}
 
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 {
@@ -91,7 +38,7 @@ void throwIt(const Api &api, int64_t chatId, User::Ptr user)
 
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
         string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        throwItImage(api, chatId, username, title, userImgData);
+        throwImage(api, chatId, username, title, userImgData);
     }
     else
     {
@@ -207,7 +154,7 @@ int main()
 
                 try
                 {
-                    throwItImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
+                    throwImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
                     bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
                 }
                 catch (TgException &e)

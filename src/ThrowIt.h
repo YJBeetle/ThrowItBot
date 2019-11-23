@@ -1,16 +1,10 @@
-class ThrowIt
-{
-private:
-    /* data */
-public:
-    ThrowIt(/* args */);
-    ~ThrowIt();
-};
+#pragma once
 
-ThrowIt::ThrowIt(/* args */)
-{
-}
+#include <opencv2/opencv.hpp>
+#include <tgbot/tgbot.h>
+#include <ArtRobot/ArtRobot.h>
 
-ThrowIt::~ThrowIt()
-{
-}
+void throwImage(const TgBot::Api &api, int64_t chatId,
+                const std::string &__username,
+                const std::string &__title,
+                const std::string &__userImgData);
