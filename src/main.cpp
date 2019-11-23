@@ -72,7 +72,7 @@ void throwItImage(const Api &api, int64_t chatId, string username, const string 
     auto fileId = stickerSet->stickers[0]->fileId;
     api.sendSticker(chatId, fileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
 
-usersData.set(username ,fileId);
+    usersData.set(username, fileId);
 }
 
 void throwIt(const Api &api, int64_t chatId, User::Ptr user)

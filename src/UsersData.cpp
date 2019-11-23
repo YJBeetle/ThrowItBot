@@ -31,4 +31,3 @@ void UsersData::saveToFile()
         out << user.second << endl;
     }
 }
-
