@@ -21,30 +21,6 @@ const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 std::string botUsername;
 UsersData usersData;
 
-void throwIt(const Api &api, int64_t chatId, User::Ptr user)
-{
-    cout << "Throw: " << user->username << endl;
-
-    api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
-
-    auto userPhotosInfo = api.getUserProfilePhotos(user->id);
-
-    if (userPhotosInfo->totalCount) // 照片数不为0
-    {
-        auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
-        auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
-        auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
-
-        string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
-        string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        throwImage(api, chatId, username, title, userImgData);
-    }
-    else
-    {
-        api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
-    }
-}
-
 string searchFileIdByUsername(const Api &api, const string &username)
 {
     auto s = usersData.data.find(username);
@@ -107,7 +83,7 @@ int main()
             {
                 try
                 {
-                    throwIt(bot.getApi(), message->chat->id, message->forwardFrom);
+                    throwUser(bot.getApi(), message->chat->id, message->forwardFrom);
                     bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
                 }
                 catch (TgException &e)
@@ -222,7 +198,7 @@ int main()
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
         try
         {
-            throwIt(bot.getApi(), message->chat->id, message->from);
+            throwUser(bot.getApi(), message->chat->id, message->from);
             bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
         }
         catch (TgException &e)

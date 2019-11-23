@@ -7,8 +7,21 @@ using namespace std;
 using namespace cv;
 using namespace TgBot;
 
+// 设置正在发送
+void sendChatActionUploadPhoto(const Api &api, int64_t chatId)
+{
+    try
+    {
+        api.sendChatAction(chatId, "upload_photo");
+    }
+    catch (TgException &e)
+    {
+        LogW("throwImage: sendChatAction error");
+    }
+}
+
 // 用ArtRobot绘制一张丢的图像
-shared_ptr<ArtRobot::Component::Base> drawThrowImage(const string &__imgData)
+shared_ptr<ArtRobot::Component::Base> drawImageForThrow(const string &__imgData)
 {
     vector<unsigned char> imgVector(__imgData.begin(), __imgData.end()); // 图片转为vector
     Mat imgMat = imdecode(imgVector, IMREAD_COLOR);                      // 图片转为Mat
@@ -43,16 +56,9 @@ void throwImage(const Api &api, int64_t chatId,
 
     LogV("throwImage: %s", username.c_str());
 
-    try
-    {
-        api.sendChatAction(chatId, "upload_photo"); // 设置正在发送
-    }
-    catch (TgException &e)
-    {
-        LogW("throwImage: sendChatAction error");
-    }
+    sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
-    auto body = drawThrowImage(__imgData); // 绘制图像
+    auto body = drawImageForThrow(__imgData); // 绘制图像
 
     ArtRobot::Renderer renderer(ArtRobot::OutputTypePng, 512, 512, ArtRobot::Renderer::PX, 72); // 渲染png
     renderer.render(body->getSurface());
@@ -138,5 +144,31 @@ void throwImage(const Api &api, int64_t chatId,
     {
         LogE("throwImage: sendSticker error");
         return;
+    }
+}
+
+// 丢一个用户（聊天者本人或转发消息时才可获得）
+void throwUser(const Api &api, int64_t chatId,
+               User::Ptr user)
+{
+    LogV("throwUser: %s %d", user->username.c_str(), user->id);
+
+    sendChatActionUploadPhoto(api, chatId); // 设置正在发送
+
+    auto userPhotosInfo = api.getUserProfilePhotos(user->id);
+
+    if (userPhotosInfo->totalCount) // 照片数不为0
+    {
+        auto &userPhotosInfoFirst = userPhotosInfo->photos[0];
+        auto userImgPath = api.getFile(userPhotosInfoFirst[userPhotosInfoFirst.size() - 1]->fileId); // 取用最大的图片
+        auto userImgData = api.downloadFile(userImgPath->filePath);                                  // 图像数据（maybe jpg）
+
+        string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
+        string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
+        throwImage(api, chatId, username, title, userImgData);
+    }
+    else
+    {
+        api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
     }
 }
