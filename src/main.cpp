@@ -113,12 +113,24 @@ int main()
 
         if (results.size() == 0)
         {
-            auto text = make_shared<InputTextMessageContent>();
-            text->messageText = "@" + botUsername;
             auto result = make_shared<InlineQueryResultArticle>();
-            result->title = "No user found";
+
+            result->title = "No user found, touch me to throw it.";
             result->id = "nouser";
+
+            auto text = make_shared<InputTextMessageContent>();
+            text->messageText = "Click to throw @" + query;
             result->inputMessageContent = text;
+
+            InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
+            button->text = "Throw @" + query;
+            button->callbackData = query;
+            auto replyMarkup = make_shared<InlineKeyboardMarkup>();
+            replyMarkup->inlineKeyboard.resize(1);
+            replyMarkup->inlineKeyboard[0].resize(1);
+            replyMarkup->inlineKeyboard[0][0] = button;
+            result->replyMarkup = replyMarkup;
+
             results.push_back(result);
         }
 
@@ -136,8 +148,22 @@ int main()
         }
     });
 
-    bot.getEvents().onChosenInlineResult([&bot](ChosenInlineResult::Ptr chosenInlineResult) {
-        LogD("onChosenInlineResult");
+    bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
+        LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
+
+        if (throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id))
+            sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
+
+        try
+        {
+            bot.getApi().answerCallbackQuery(callbackQuery->id, "Success, now you can find it in inline query.");
+            // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/addstickers/wmliyin_by_ThrowYouBot");
+            // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/ThrowYouBot?start=XXXX");
+        }
+        catch (TgException &e)
+        {
+            LogE("TgBot::Api::answerCallbackQuery: %s", e.what());
+        }
     });
 
     while (true)
