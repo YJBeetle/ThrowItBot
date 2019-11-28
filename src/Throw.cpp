@@ -2,23 +2,11 @@
 
 #include "Log.h"
 #include "Global.h"
+#include "Tg.h"
 
 using namespace std;
 using namespace cv;
 using namespace TgBot;
-
-// 设置正在发送
-void sendChatActionUploadPhoto(const Api &api, int64_t chatId)
-{
-    try
-    {
-        api.sendChatAction(chatId, "upload_photo");
-    }
-    catch (TgException &e)
-    {
-        LogW("sendChatActionUploadPhoto: sendChatAction error");
-    }
-}
 
 // ArtRobot的实际绘制函数
 shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
