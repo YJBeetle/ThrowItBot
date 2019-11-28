@@ -7,6 +7,7 @@
 #include <tgbot/tgbot.h>
 #include <ArtRobot/ArtRobot.h>
 
+#include "Log.h"
 #include "UsersData.h"
 #include "ThrowIt.h"
 #include "Global.h"
@@ -66,7 +67,9 @@ bool pushStickerToResultByUsername(const Api &api, vector<InlineQueryResult::Ptr
 
 int main()
 {
-    cout << "ThrowItBot start!" << endl;
+    cout << "=================" << endl
+         << "|  ThrowItBot!  |" << endl
+         << "=================" << endl;
 
     // init
     usersData.readFromFile();
@@ -270,14 +273,14 @@ int main()
     {
         try
         {
-            cout << "Starting ..." << endl;
+            LogI("Starting ...");
             botUsername = bot.getApi().getMe()->username;
-            cout << "Bot username: " << botUsername << endl;
+            LogI("Bot username: %s", botUsername.c_str());
 
             TgLongPoll longPoll(bot);
             while (true)
             {
-                cout << "Long poll started." << endl;
+                LogI("Long poll started.");
                 longPoll.start();
             }
 
