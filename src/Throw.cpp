@@ -36,7 +36,8 @@ shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
 bool throwByImage(const Api &api, int64_t chatId,
                   const string &__username,
                   const string &__title,
-                  const string &__imgData)
+                  const string &__imgData,
+                  int32_t ownerId)
 {
     string username = __username;
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
@@ -58,7 +59,7 @@ bool throwByImage(const Api &api, int64_t chatId,
     File::Ptr stickerFile;
     try
     {
-        stickerFile = api.uploadStickerFile(chatId, stickerPngFile); // 上传贴纸
+        stickerFile = api.uploadStickerFile(ownerId, stickerPngFile); // 上传贴纸
     }
     catch (TgException &e)
     {
@@ -81,7 +82,7 @@ bool throwByImage(const Api &api, int64_t chatId,
     { // 存在贴纸包
         try
         {
-            api.addStickerToSet(chatId, stickerName, stickerFile->fileId, "🙃"); // 添加贴纸到贴纸包
+            api.addStickerToSet(ownerId, stickerName, stickerFile->fileId, "🙃"); // 添加贴纸到贴纸包
         }
         catch (TgException &e)
         {
@@ -102,7 +103,7 @@ bool throwByImage(const Api &api, int64_t chatId,
     { // 没有找到贴纸 创建
         try
         {
-            api.createNewStickerSet(chatId, stickerName, __title, stickerFile->fileId, "🙃"); // 创建贴纸包并添加第一个贴纸
+            api.createNewStickerSet(ownerId, stickerName, __title, stickerFile->fileId, "🙃"); // 创建贴纸包并添加第一个贴纸
         }
         catch (TgException &e)
         {
@@ -173,8 +174,11 @@ bool throwByUserId(const Api &api, int64_t chatId,
             return false;
         }
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
-        string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        return throwByImage(api, chatId, username, title, userPhotosData);
+        return throwByImage(api, chatId,
+                            username,
+                            user->username.empty() ? "Throw" : "Throw @" + user->username,
+                            userPhotosData,
+                            user->id);
     }
     else
     {
@@ -189,7 +193,8 @@ const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
 // 丢一个Username
 bool throwByUsername(const Api &api, int64_t chatId,
-                     const string &__username)
+                     const string &__username,
+                     int32_t ownerId)
 {
     LogV("throwByUsername: %s", __username.c_str());
 
@@ -217,7 +222,11 @@ bool throwByUsername(const Api &api, int64_t chatId,
 
         string img = curl.makeRequest(imgurl, args);
 
-        return throwByImage(api, chatId, username, "Throw @" + username, img);
+        return throwByImage(api, chatId,
+                            username,
+                            "Throw @" + username,
+                            img,
+                            ownerId);
     }
     else
     {
