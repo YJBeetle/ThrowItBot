@@ -34,7 +34,7 @@ int main()
     Bot bot(token);
 
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { // 处理收到的直接消息
-        cout << "Message: " << message->chat->username << ": " << message->text << endl;
+        LogI("Message: %s: %s", message->chat->username.c_str(), message->text.c_str());
 
         if (message->forwardDate) // 是转发的消息
         {
@@ -82,7 +82,7 @@ int main()
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
-        cout << "InlineQuery: " << inlineQuery->from->username << ": " << inlineQuery->query << endl;
+        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), inlineQuery->query.c_str());
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
