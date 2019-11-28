@@ -33,7 +33,7 @@ int main()
     string token = getenv("TOKEN");
     Bot bot(token);
 
-    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
+    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { // 处理收到的直接消息
         cout << "Message: " << message->chat->username << ": " << message->text << endl;
 
         if (message->forwardDate) // 是转发的消息
@@ -44,15 +44,8 @@ int main()
                     sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
             else
-            {
-                try
-                {
-                    bot.getApi().sendMessage(message->chat->id, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.", false, 0, std::make_shared<GenericReply>(), "", true);
-                }
-                catch (TgException &e)
-                {
-                    cerr << "sendMessage error: " << e.what() << endl;
-                }
+            { // 被转发用户的隐私设置原因无法获取uid
+                sendMessage(bot.getApi(), message->chat->id, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.");
             }
             return;
         }
@@ -70,50 +63,22 @@ int main()
             return;
         }
 
-        try
-        {
-            bot.getApi().sendMessage(message->chat->id, "Do you need /help ?", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            cerr << "sendMessage error: " << e.what() << endl;
-        }
+        sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
     });
 
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) {
-        try
-        {
-            // 您可以说/throw扔自己！
-            // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
-            bot.getApi().sendMessage(message->chat->id, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            cerr << "sendMessage error: " << e.what() << endl;
-        }
+        // 您可以说/throw扔自己！
+        // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
+        sendMessage(bot.getApi(), message->chat->id, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.");
     });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message) {
-        try
-        {
-            bot.getApi().sendMessage(message->chat->id, "Do you need to be /throw ?", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            cerr << "sendMessage error: " << e.what() << endl;
-        }
+        sendMessage(bot.getApi(), message->chat->id, "Do you need to be /throw ?");
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
-        try
-        {
-            if (throwByUserId(bot.getApi(), message->chat->id, message->from))
-                sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
-        }
-        catch (TgException &e)
-        {
-            cerr << "Throw error: " << e.what() << endl;
-        }
+        if (throwByUserId(bot.getApi(), message->chat->id, message->from))
+            sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
