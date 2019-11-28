@@ -90,26 +90,9 @@ int main()
         transform(query.begin(), query.end(), query.begin(), ::tolower); // 转小写
 
         if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
-        {
-            pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1);
-        }
+            pushStickerToResultByUsername(bot.getApi(), results, query);
         else
-        {
-            // 快速搜索
-            int i = 0;
-            for (auto user : usersData.data)
-            {
-                if (user.first.find(query) != string::npos)
-                {
-                    auto result = make_shared<InlineQueryResultCachedSticker>();
-                    result->id = user.first;
-                    result->stickerFileId = user.second;
-                    results.push_back(result);
-                }
-                if (i++ >= 19) // 只显示前20个结果
-                    break;
-            }
-        }
+            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, query);
 
         if (results.size() == 0)
         {
