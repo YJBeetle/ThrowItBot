@@ -128,7 +128,8 @@ bool throwByImage(const Api &api, int64_t chatId,
     try
     {
         // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送贴纸地址
-        api.sendSticker(chatId, stickerFileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+        // api.sendSticker(chatId, stickerFileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
+        api.sendSticker(chatId, stickerFileId); // 发送一个贴纸
     }
     catch (TgException &e)
     {
