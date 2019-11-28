@@ -62,7 +62,7 @@ void throwByImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwByImage: uploadStickerFile error");
+        LogE("throwByImage: TgBot::Api::uploadStickerFile: %s", e.what());
         return;
     }
 
@@ -73,7 +73,8 @@ void throwByImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogI("throwByImage: getStickerSet error, no sticker, create it.");
+        LogI("throwByImage: TgBot::Api::getStickerSet: %s", e.what());
+        LogI("throwByImage: No sticker, create it.");
     }
 
     if (stickerSet)
@@ -84,7 +85,7 @@ void throwByImage(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwByImage: addStickerToSet error");
+            LogE("throwByImage: TgBot::Api::addStickerToSet: %s", e.what());
             return;
         }
         for (auto sticker : stickerSet->stickers)
@@ -94,7 +95,7 @@ void throwByImage(const Api &api, int64_t chatId,
             }
             catch (TgException &e)
             {
-                LogW("throwByImage: deleteStickerFromSet error");
+                LogE("throwByImage: TgBot::Api::deleteStickerFromSet: %s", e.what());
             }
     }
     else
@@ -105,7 +106,7 @@ void throwByImage(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwByImage: createNewStickerSet error");
+            LogE("throwByImage: TgBot::Api::createNewStickerSet: %s", e.what());
             return;
         }
     }
@@ -117,7 +118,7 @@ void throwByImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwByImage: getStickerSet error");
+        LogE("throwByImage: TgBot::Api::getStickerSet: %s", e.what());
         return;
     }
 
@@ -130,7 +131,7 @@ void throwByImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwByImage: sendSticker error");
+        LogE("throwByImage: TgBot::Api::sendSticker: %s", e.what());
         return;
     }
 }
@@ -151,7 +152,7 @@ void throwByUserId(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwByUserId: getUserProfilePhotos error");
+        LogE("throwByUserId: TgBot::Api::getUserProfilePhotos: %s", e.what());
         return;
     }
 
@@ -166,7 +167,7 @@ void throwByUserId(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwByUserId: Get user photo error.");
+            LogE("throwByUserId: Get user photo error: %s", e.what());
             return;
         }
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
@@ -176,15 +177,7 @@ void throwByUserId(const Api &api, int64_t chatId,
     else
     {
         LogW("throwByUserId: No photos.");
-        try
-        {
-            api.sendMessage(chatId, "No photos.", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            LogE("throwByUserId: sendMessage error");
-            return;
-        }
+        sendMessage(api, chatId, "No photos.");
     }
 }
 
@@ -221,27 +214,13 @@ void throwByUsername(const Api &api, int64_t chatId,
 
         string img = curl.makeRequest(imgurl, args);
 
-        try
-        {
-            throwByImage(api, chatId, username, "Throw @" + username, img);
-            api.sendMessage(chatId, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            cerr << "throwItImage error: " << e.what() << endl;
-        }
+        throwByImage(api, chatId, username, "Throw @" + username, img);
+        sendMessage(api, chatId, "<(ˉ^ˉ)>");
     }
     else
     {
-        LogW("throwByUserId: No photos.");
-        try
-        {
-            api.sendMessage(chatId, "No photos.", false, 0, std::make_shared<GenericReply>(), "", true);
-        }
-        catch (TgException &e)
-        {
-            cerr << "sendMessage error: " << e.what() << endl;
-        }
+        LogW("throwByUsername: No photos.");
+        sendMessage(api, chatId, "No photos.");
     }
     return;
 }
