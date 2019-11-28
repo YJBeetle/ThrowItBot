@@ -33,7 +33,7 @@ shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
 }
 
 // throwByImage
-void throwByImage(const Api &api, int64_t chatId,
+bool throwByImage(const Api &api, int64_t chatId,
                   const string &__username,
                   const string &__title,
                   const string &__imgData)
@@ -63,7 +63,7 @@ void throwByImage(const Api &api, int64_t chatId,
     catch (TgException &e)
     {
         LogE("throwByImage: TgBot::Api::uploadStickerFile: %s", e.what());
-        return;
+        return false;
     }
 
     StickerSet::Ptr stickerSet;
@@ -86,7 +86,7 @@ void throwByImage(const Api &api, int64_t chatId,
         catch (TgException &e)
         {
             LogE("throwByImage: TgBot::Api::addStickerToSet: %s", e.what());
-            return;
+            return false;
         }
         for (auto sticker : stickerSet->stickers)
             try
@@ -107,7 +107,7 @@ void throwByImage(const Api &api, int64_t chatId,
         catch (TgException &e)
         {
             LogE("throwByImage: TgBot::Api::createNewStickerSet: %s", e.what());
-            return;
+            return false;
         }
     }
 
@@ -119,7 +119,7 @@ void throwByImage(const Api &api, int64_t chatId,
     catch (TgException &e)
     {
         LogE("throwByImage: TgBot::Api::getStickerSet: %s", e.what());
-        return;
+        return false;
     }
 
     usersData.set(username, stickerFileId);
@@ -132,12 +132,14 @@ void throwByImage(const Api &api, int64_t chatId,
     catch (TgException &e)
     {
         LogE("throwByImage: TgBot::Api::sendSticker: %s", e.what());
-        return;
+        return false;
     }
+
+    return true;
 }
 
 // 丢一个Uid（聊天者本人或转发消息时才可获得）
-void throwByUserId(const Api &api, int64_t chatId,
+bool throwByUserId(const Api &api, int64_t chatId,
                    User::Ptr user)
 {
     LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
@@ -153,7 +155,7 @@ void throwByUserId(const Api &api, int64_t chatId,
     catch (TgException &e)
     {
         LogE("throwByUserId: TgBot::Api::getUserProfilePhotos: %s", e.what());
-        return;
+        return false;
     }
 
     if (userPhotosInfo && userPhotosInfo->totalCount) // 照片数不为0
@@ -168,16 +170,17 @@ void throwByUserId(const Api &api, int64_t chatId,
         catch (TgException &e)
         {
             LogE("throwByUserId: Get user photo error: %s", e.what());
-            return;
+            return false;
         }
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
         string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        throwByImage(api, chatId, username, title, userPhotosData);
+        return throwByImage(api, chatId, username, title, userPhotosData);
     }
     else
     {
         LogW("throwByUserId: No photos.");
         sendMessage(api, chatId, "No photos.");
+        return false;
     }
 }
 
@@ -185,7 +188,7 @@ const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
 const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
 // 丢一个Username
-void throwByUsername(const Api &api, int64_t chatId,
+bool throwByUsername(const Api &api, int64_t chatId,
                      const string &__username)
 {
     LogV("throwByUsername: %s", __username.c_str());
@@ -214,13 +217,12 @@ void throwByUsername(const Api &api, int64_t chatId,
 
         string img = curl.makeRequest(imgurl, args);
 
-        throwByImage(api, chatId, username, "Throw @" + username, img);
-        sendMessage(api, chatId, "<(ˉ^ˉ)>");
+        return throwByImage(api, chatId, username, "Throw @" + username, img);
     }
     else
     {
         LogW("throwByUsername: No photos.");
         sendMessage(api, chatId, "No photos.");
+        return false;
     }
-    return;
 }

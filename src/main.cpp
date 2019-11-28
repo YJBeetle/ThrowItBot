@@ -12,6 +12,7 @@
 #include "UsersData.h"
 #include "Throw.h"
 #include "InlineQuery.h"
+#include "Tg.h"
 
 using namespace std;
 using namespace cv;
@@ -39,15 +40,8 @@ int main()
         {
             if (message->forwardFrom)
             {
-                try
-                {
-                    throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom);
-                    bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
-                }
-                catch (TgException &e)
-                {
-                    cerr << "Throw error: " << e.what() << endl;
-                }
+                if (throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom))
+                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
             else
             {
@@ -64,7 +58,8 @@ int main()
         }
 
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
-            throwByUsername(bot.getApi(), message->chat->id, message->text);
+            if (throwByUsername(bot.getApi(), message->chat->id, message->text))
+                sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
 
         if (
             StringTools::startsWith(message->text, "/start") ||
@@ -112,8 +107,8 @@ int main()
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
         try
         {
-            throwByUserId(bot.getApi(), message->chat->id, message->from);
-            bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
+            if (throwByUserId(bot.getApi(), message->chat->id, message->from))
+                sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
         }
         catch (TgException &e)
         {
