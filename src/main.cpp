@@ -145,12 +145,13 @@ int main()
         }
         catch (TgException &e)
         {
-            cerr << "error: " << e.what() << endl;
+            LogE("Error: %s", e.what());
         }
         catch (...)
         {
-            cerr << "error" << endl;
+            LogE("Unknow error.");
         }
+        LogI("Restart.");
     }
 
     return 0;
