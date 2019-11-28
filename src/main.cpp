@@ -74,7 +74,8 @@ int main()
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) { // /throw
-        if (message->text == "/throw")
+        if (message->text == "/throw" ||
+            message->text == ("/throw@" + botUsername))
         { // 正常抛
             if (throwByUserId(bot.getApi(), message->chat->id, message->from))
                 sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
