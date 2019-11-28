@@ -80,7 +80,8 @@ int main()
             if (throwByUserId(bot.getApi(), message->chat->id, message->from))
                 sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
         }
-        else if (StringTools::startsWith(message->text, "/throw "))
+        else if (StringTools::startsWith(message->text, "/throw ") ||
+                 StringTools::startsWith(message->text, "/throw@"))
         { // 抛Username
             if (throwByUsername(bot.getApi(), message->chat->id, message->text.c_str() + sizeof("/throw ") - 1, message->from->id))
                 sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
