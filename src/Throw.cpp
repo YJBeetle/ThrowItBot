@@ -1,4 +1,4 @@
-#include "ThrowIt.h"
+#include "Throw.h"
 
 #include "Log.h"
 #include "Global.h"
@@ -16,12 +16,12 @@ void sendChatActionUploadPhoto(const Api &api, int64_t chatId)
     }
     catch (TgException &e)
     {
-        LogW("throwImage: sendChatAction error");
+        LogW("sendChatActionUploadPhoto: sendChatAction error");
     }
 }
 
-// 用ArtRobot绘制一张丢的图像
-shared_ptr<ArtRobot::Component::Base> drawImageForThrow(const string &__imgData)
+// ArtRobot的实际绘制函数
+shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
 {
     vector<unsigned char> imgVector(__imgData.begin(), __imgData.end()); // 图片转为vector
     Mat imgMat = imdecode(imgVector, IMREAD_COLOR);                      // 图片转为Mat
@@ -44,8 +44,8 @@ shared_ptr<ArtRobot::Component::Base> drawImageForThrow(const string &__imgData)
     return body;
 }
 
-// 向指定的chatId丢一张图
-void throwImage(const Api &api, int64_t chatId,
+// throwByImage
+void throwByImage(const Api &api, int64_t chatId,
                 const string &__username,
                 const string &__title,
                 const string &__imgData)
@@ -54,11 +54,11 @@ void throwImage(const Api &api, int64_t chatId,
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
     string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
 
-    LogV("throwImage: %s", username.c_str());
+    LogV("throwByImage: %s", username.c_str());
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
-    auto body = drawImageForThrow(__imgData); // 绘制图像
+    auto body = drawImage(__imgData); // 绘制图像
 
     ArtRobot::Renderer renderer(ArtRobot::OutputTypePng, 512, 512, ArtRobot::Renderer::PX, 72); // 渲染png
     renderer.render(body->getSurface());
@@ -74,7 +74,7 @@ void throwImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwImage: uploadStickerFile error");
+        LogE("throwByImage: uploadStickerFile error");
         return;
     }
 
@@ -85,7 +85,7 @@ void throwImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogI("throwImage: getStickerSet error, no sticker, create it.");
+        LogI("throwByImage: getStickerSet error, no sticker, create it.");
     }
 
     if (stickerSet)
@@ -96,7 +96,7 @@ void throwImage(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwImage: addStickerToSet error");
+            LogE("throwByImage: addStickerToSet error");
             return;
         }
         for (auto sticker : stickerSet->stickers)
@@ -106,7 +106,7 @@ void throwImage(const Api &api, int64_t chatId,
             }
             catch (TgException &e)
             {
-                LogW("throwImage: deleteStickerFromSet error");
+                LogW("throwByImage: deleteStickerFromSet error");
             }
     }
     else
@@ -117,7 +117,7 @@ void throwImage(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwImage: createNewStickerSet error");
+            LogE("throwByImage: createNewStickerSet error");
             return;
         }
     }
@@ -129,7 +129,7 @@ void throwImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwImage: getStickerSet error");
+        LogE("throwByImage: getStickerSet error");
         return;
     }
 
@@ -142,16 +142,16 @@ void throwImage(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwImage: sendSticker error");
+        LogE("throwByImage: sendSticker error");
         return;
     }
 }
 
 // 丢一个用户（聊天者本人或转发消息时才可获得）
-void throwUser(const Api &api, int64_t chatId,
+void throwByUserId(const Api &api, int64_t chatId,
                User::Ptr user)
 {
-    LogV("throwUser: %s %d", user->username.c_str(), user->id);
+    LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
@@ -163,7 +163,7 @@ void throwUser(const Api &api, int64_t chatId,
     }
     catch (TgException &e)
     {
-        LogE("throwUser: getUserProfilePhotos error");
+        LogE("throwByUserId: getUserProfilePhotos error");
         return;
     }
 
@@ -178,12 +178,12 @@ void throwUser(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwUser: Get user photo error.");
+            LogE("throwByUserId: Get user photo error.");
             return;
         }
         string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
         string title = user->username.empty() ? "Throw" : "Throw @" + user->username;
-        throwImage(api, chatId, username, title, userPhotosData);
+        throwByImage(api, chatId, username, title, userPhotosData);
     }
     else
     {
@@ -193,7 +193,7 @@ void throwUser(const Api &api, int64_t chatId,
         }
         catch (TgException &e)
         {
-            LogE("throwUser: sendMessage error");
+            LogE("throwByUserId: sendMessage error");
             return;
         }
     }

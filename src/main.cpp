@@ -7,10 +7,11 @@
 #include <tgbot/tgbot.h>
 #include <ArtRobot/ArtRobot.h>
 
+#include "Global.h"
 #include "Log.h"
 #include "UsersData.h"
-#include "ThrowIt.h"
-#include "Global.h"
+#include "Throw.h"
+#include "InlineQuery.h"
 
 using namespace std;
 using namespace cv;
@@ -21,49 +22,6 @@ const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
 
 std::string botUsername;
 UsersData usersData;
-
-string searchFileIdByUsername(const Api &api, const string &username)
-{
-    auto s = usersData.data.find(username);
-    if (s != usersData.data.end())
-    {
-        return s->second;
-    }
-    else
-    {
-        string stickerName = username + "_by_" + botUsername; // 贴纸名字
-        try
-        {
-            auto stickerSet = api.getStickerSet(stickerName);
-            if (stickerSet->stickers.size())
-            {
-                auto fileId = stickerSet->stickers[0]->fileId;
-                usersData.set(username, fileId);
-                return fileId;
-            }
-            else
-                return "";
-        }
-        catch (const std::exception &e)
-        {
-            return "";
-        }
-    }
-}
-
-bool pushStickerToResultByUsername(const Api &api, vector<InlineQueryResult::Ptr> &results, const string &username)
-{
-    auto fileId = searchFileIdByUsername(api, username);
-    if (!fileId.empty())
-    {
-        auto result = make_shared<InlineQueryResultCachedSticker>();
-        result->id = username;
-        result->stickerFileId = fileId;
-        results.push_back(result);
-        return true;
-    }
-    return false;
-}
 
 int main()
 {
@@ -86,7 +44,7 @@ int main()
             {
                 try
                 {
-                    throwUser(bot.getApi(), message->chat->id, message->forwardFrom);
+                    throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom);
                     bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
                 }
                 catch (TgException &e)
@@ -132,7 +90,7 @@ int main()
 
                 try
                 {
-                    throwImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
+                    throwByImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
                     bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
                 }
                 catch (TgException &e)
@@ -201,7 +159,7 @@ int main()
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
         try
         {
-            throwUser(bot.getApi(), message->chat->id, message->from);
+            throwByUserId(bot.getApi(), message->chat->id, message->from);
             bot.getApi().sendMessage(message->chat->id, "( ﹁ ﹁ ) ", false, 0, std::make_shared<GenericReply>(), "", true);
         }
         catch (TgException &e)
@@ -266,7 +224,7 @@ int main()
     });
 
     bot.getEvents().onChosenInlineResult([&bot](ChosenInlineResult::Ptr chosenInlineResult) {
-        cout << "onChosenInlineResult" << endl;
+        LogD( "onChosenInlineResult" );
     });
 
     while (true)
