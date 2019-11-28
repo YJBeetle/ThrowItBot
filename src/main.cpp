@@ -57,31 +57,41 @@ int main()
             return;
         }
 
-        if (
-            StringTools::startsWith(message->text, "/start") ||
-            StringTools::startsWith(message->text, "/help") ||
-            StringTools::startsWith(message->text, "/throw") ||
-            false)
-        { // 如果是已知的指令则跳过
+        if (message->text.c_str()[0] == '/') // 如果是指令则跳过
             return;
-        }
 
         sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
     });
 
-    bot.getEvents().onCommand("help", [&bot](Message::Ptr message) {
+    bot.getEvents().onCommand("help", [&bot](Message::Ptr message) { // /help
         // 您可以说/throw扔自己！
         // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
         sendMessage(bot.getApi(), message->chat->id, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.");
     });
 
-    bot.getEvents().onCommand("start", [&bot](Message::Ptr message) {
+    bot.getEvents().onCommand("start", [&bot](Message::Ptr message) { // /start
         sendMessage(bot.getApi(), message->chat->id, "Do you need to be /throw ?");
     });
 
-    bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) {
-        if (throwByUserId(bot.getApi(), message->chat->id, message->from))
-            sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+    bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) { // /throw
+        if (message->text == "/throw")
+        { // 正常抛
+            if (throwByUserId(bot.getApi(), message->chat->id, message->from))
+                sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+        }
+        else if (StringTools::startsWith(message->text, "/throw "))
+        { // 抛Username
+            if (throwByUsername(bot.getApi(), message->chat->id, message->text.c_str() + sizeof("/throw ") - 1, message->from->id))
+                sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+        }
+        else
+        { // 语法错误
+            sendMessage(bot.getApi(), message->chat->id, "Command error, you should /throw UserName");
+        }
+    });
+
+    bot.getEvents().onUnknownCommand([&bot](Message::Ptr message) { // 未知指令
+        sendMessage(bot.getApi(), message->chat->id, "Unknow command.\nDo you need /help ?");
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
