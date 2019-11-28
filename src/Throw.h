@@ -11,3 +11,6 @@ void throwByImage(const TgBot::Api &api, int64_t chatId,
 
 void throwByUserId(const TgBot::Api &api, int64_t chatId,
                TgBot::User::Ptr user);
+
+void throwByUsername(const TgBot::Api &api, int64_t chatId,
+               const std::string &__username);

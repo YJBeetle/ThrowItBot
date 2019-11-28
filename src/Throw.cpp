@@ -34,9 +34,9 @@ shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
 
 // throwByImage
 void throwByImage(const Api &api, int64_t chatId,
-                const string &__username,
-                const string &__title,
-                const string &__imgData)
+                  const string &__username,
+                  const string &__title,
+                  const string &__imgData)
 {
     string username = __username;
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
@@ -135,9 +135,9 @@ void throwByImage(const Api &api, int64_t chatId,
     }
 }
 
-// 丢一个用户（聊天者本人或转发消息时才可获得）
+// 丢一个Uid（聊天者本人或转发消息时才可获得）
 void throwByUserId(const Api &api, int64_t chatId,
-               User::Ptr user)
+                   User::Ptr user)
 {
     LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
 
@@ -175,9 +175,10 @@ void throwByUserId(const Api &api, int64_t chatId,
     }
     else
     {
+        LogW("throwByUserId: No photos.");
         try
         {
-            api.sendMessage(chatId, "No Photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+            api.sendMessage(chatId, "No photos.", false, 0, std::make_shared<GenericReply>(), "", true);
         }
         catch (TgException &e)
         {
@@ -185,4 +186,62 @@ void throwByUserId(const Api &api, int64_t chatId,
             return;
         }
     }
+}
+
+const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
+const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
+
+// 丢一个Username
+void throwByUsername(const Api &api, int64_t chatId,
+                     const string &__username)
+{
+    LogV("throwByUsername: %s", __username.c_str());
+
+    sendChatActionUploadPhoto(api, chatId); // 设置正在发送
+
+    string username;
+    if (__username.c_str()[0] == '@') // 首位是@的话去掉
+        username = __username.c_str() + 1;
+    else
+        username = __username;
+
+    CurlHttpClient curl;
+    string url = "https://t.me/" + username;
+    vector<HttpReqArg> args;
+    string html = curl.makeRequest(url, args);
+
+    auto startpos = html.find(UserImgSearchStr);
+    if (startpos != string::npos)
+    {
+        startpos += UserImgSearchStrLen;
+        auto endpos = html.find_first_of("\"", startpos);
+        string imgurl = html.substr(startpos, endpos - startpos);
+
+        sendChatActionUploadPhoto(api, chatId); // 设置正在发送
+
+        string img = curl.makeRequest(imgurl, args);
+
+        try
+        {
+            throwByImage(api, chatId, username, "Throw @" + username, img);
+            api.sendMessage(chatId, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "throwItImage error: " << e.what() << endl;
+        }
+    }
+    else
+    {
+        LogW("throwByUserId: No photos.");
+        try
+        {
+            api.sendMessage(chatId, "No photos.", false, 0, std::make_shared<GenericReply>(), "", true);
+        }
+        catch (TgException &e)
+        {
+            cerr << "sendMessage error: " << e.what() << endl;
+        }
+    }
+    return;
 }

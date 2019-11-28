@@ -17,9 +17,6 @@ using namespace std;
 using namespace cv;
 using namespace TgBot;
 
-const char UserImgSearchStr[] = "<img class=\"tgme_page_photo_image\" src=\"";
-const int UserImgSearchStrLen = sizeof(UserImgSearchStr) - 1;
-
 std::string botUsername;
 UsersData usersData;
 
@@ -66,52 +63,8 @@ int main()
             return;
         }
 
-        if (message->text.c_str()[0] == '@') // 首位是@的话去网页拉取头像
-        {
-            cout << "ThrowAt: " << message->text << endl;
-
-            string username = message->text.c_str() + 1;
-
-            CurlHttpClient curl;
-            string url = "https://t.me/" + username;
-            vector<HttpReqArg> args;
-            string html = curl.makeRequest(url, args);
-
-            auto startpos = html.find(UserImgSearchStr);
-            if (startpos != string::npos)
-            {
-                startpos += UserImgSearchStrLen;
-                auto endpos = html.find_first_of("\"", startpos);
-                string imgurl = html.substr(startpos, endpos - startpos);
-
-                bot.getApi().sendChatAction(message->chat->id, "upload_photo"); // 设置正在发送
-
-                string img = curl.makeRequest(imgurl, args);
-
-                try
-                {
-                    throwByImage(bot.getApi(), message->chat->id, username, "Throw @" + username, img);
-                    bot.getApi().sendMessage(message->chat->id, "<(ˉ^ˉ)>", false, 0, std::make_shared<GenericReply>(), "", true);
-                }
-                catch (TgException &e)
-                {
-                    cerr << "throwItImage error: " << e.what() << endl;
-                }
-            }
-            else
-            {
-                cerr << "No User." << endl;
-                try
-                {
-                    bot.getApi().sendMessage(message->chat->id, "No User.", false, 0, std::make_shared<GenericReply>(), "", true);
-                }
-                catch (TgException &e)
-                {
-                    cerr << "sendMessage error: " << e.what() << endl;
-                }
-            }
-            return;
-        }
+        if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
+            throwByUsername(bot.getApi(), message->chat->id, message->text);
 
         if (
             StringTools::startsWith(message->text, "/start") ||
@@ -224,7 +177,7 @@ int main()
     });
 
     bot.getEvents().onChosenInlineResult([&bot](ChosenInlineResult::Ptr chosenInlineResult) {
-        LogD( "onChosenInlineResult" );
+        LogD("onChosenInlineResult");
     });
 
     while (true)
