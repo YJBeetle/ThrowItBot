@@ -52,7 +52,9 @@ int main()
 
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
         {
-            if (throwByUsername(bot.getApi(), message->chat->id, message->text, message->from->id))
+            if (message->text == ("@" + botUsername))
+                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻");
+            else if (throwByUsername(bot.getApi(), message->chat->id, message->text, message->from->id))
                 sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             return;
         }
