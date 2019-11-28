@@ -132,7 +132,7 @@ int main()
         }
         catch (TgException &e)
         {
-            cerr << "InlineQuery error: " << e.what() << endl;
+            LogE("answerInlineQuery: %s", e.what());
         }
     });
 
