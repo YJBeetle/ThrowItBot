@@ -62,7 +62,8 @@ int main()
         if (message->text.c_str()[0] == '/') // 如果是指令则跳过
             return;
 
-        sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
+	if (message->chat->type == Chat::Type::Private)
+            sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
     });
 
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) { // /help
