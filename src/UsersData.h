@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <tgbot/tgbot.h>
 
 #define USERDATAFILEPATH "UsersData.txt"
 
@@ -24,3 +25,5 @@ public:
         saveToFile();
     }
 };
+
+std::string searchFileIdByUsername(const TgBot::Api &api, const std::string &username);

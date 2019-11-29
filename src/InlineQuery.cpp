@@ -2,38 +2,10 @@
 
 #include "Log.h"
 #include "Global.h"
+#include "UsersData.h"
 
 using namespace std;
 using namespace TgBot;
-
-string searchFileIdByUsername(const Api &api, const string &username)
-{
-    auto s = usersData.data.find(username);
-    if (s != usersData.data.end())
-    {
-        return s->second;
-    }
-    else
-    {
-        string stickerName = username + "_by_" + botUsername; // 贴纸名字
-        try
-        {
-            auto stickerSet = api.getStickerSet(stickerName);
-            if (stickerSet->stickers.size())
-            {
-                auto fileId = stickerSet->stickers[0]->fileId;
-                usersData.set(username, fileId);
-                return fileId;
-            }
-            else
-                return "";
-        }
-        catch (const std::exception &e)
-        {
-            return "";
-        }
-    }
-}
 
 void pushStickerToResultByUsername(const Api &api,
                                    vector<InlineQueryResult::Ptr> &results,
