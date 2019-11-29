@@ -142,7 +142,8 @@ bool throwByImage(const Api &api, int64_t chatId,
 
 // 丢一个Uid（聊天者本人或转发消息时才可获得）
 bool throwByUserId(const Api &api, int64_t chatId,
-                   User::Ptr user)
+                   User::Ptr user,
+                   int32_t ownerId)
 {
     LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
 
@@ -179,7 +180,7 @@ bool throwByUserId(const Api &api, int64_t chatId,
                             username,
                             user->username.empty() ? "Throw" : "Throw @" + user->username,
                             userPhotosData,
-                            user->id);
+                            ownerId);
     }
     else
     {

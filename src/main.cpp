@@ -40,7 +40,7 @@ int main()
         {
             if (message->forwardFrom)
             {
-                if (throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom))
+                if (throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom, message->from->id))
                     sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
             else
@@ -62,7 +62,7 @@ int main()
         if (message->text.c_str()[0] == '/') // 如果是指令则跳过
             return;
 
-        if (message->chat->type == Chat::Type::Private)
+        if (message->chat->type == Chat::Type::Private) // 只有私聊显示help
             sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
     });
 
@@ -80,7 +80,7 @@ int main()
         if (message->text == "/throw" ||
             message->text == ("/throw@" + botUsername))
         { // 正常抛
-            if (throwByUserId(bot.getApi(), message->chat->id, message->from))
+            if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
                 sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
         }
         else if (StringTools::startsWith(message->text, "/throw ") ||
@@ -151,7 +151,7 @@ int main()
 
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
         LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
-        
+
         if (throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id))
             sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
 
