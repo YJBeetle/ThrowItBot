@@ -3,6 +3,7 @@
 #include "Log.h"
 #include "Global.h"
 #include "Tg.h"
+#include "StringCheck.h"
 
 using namespace std;
 using namespace cv;
@@ -40,8 +41,8 @@ bool throwByImage(const Api &api, int64_t chatId,
                   int32_t ownerId)
 {
     string username = __username;
-    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
-    string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
+    lowercase(username);
+    string stickerName = username + "_by_" + botUsername; // 贴纸名字
 
     LogV("throwByImage: username=%s, title=%s, ownerId=%d, stickerName=%s", username.c_str(), __title.c_str(), ownerId, stickerName.c_str());
 
@@ -190,11 +191,8 @@ bool throwByUsername(const Api &api, int64_t chatId,
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
-    string username;
-    if (__username.c_str()[0] == '@') // 首位是@的话去掉
-        username = __username.c_str() + 1;
-    else
-        username = __username;
+    string username = __username;
+    fixUsername(username);
 
     CurlHttpClient curl;
     string url = "https://t.me/" + username;

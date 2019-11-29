@@ -3,6 +3,7 @@
 #include "Log.h"
 #include "Global.h"
 #include "UsersData.h"
+#include "StringCheck.h"
 
 using namespace std;
 using namespace TgBot;
@@ -11,12 +12,9 @@ void pushStickerToResultByUsername(const Api &api,
                                    vector<InlineQueryResult::Ptr> &results,
                                    const string &__username)
 {
-    string username;
-    if (__username.c_str()[0] == '@') // 首位是@的话去掉
-        username = __username.c_str() + 1;
-    else
-        username = __username;
-    transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
+    string username = __username;
+    fixUsername(username);
+    lowercase(username);
 
     auto fileId = searchFileIdByUsername(api, username);
     if (!fileId.empty())
@@ -33,7 +31,7 @@ void pushStickerToResultByUsernameFuzzy(const Api &api,
                                         const string &__keywords)
 { // 快速搜索 不查询服务器
     string keywords = __keywords;
-    transform(keywords.begin(), keywords.end(), keywords.begin(), ::tolower); // 转小写
+    lowercase(keywords);
 
     int i = 0;
     for (auto user : usersData.data)
