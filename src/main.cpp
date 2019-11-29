@@ -34,7 +34,7 @@ int main()
     Bot bot(token);
 
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { // 处理收到的直接消息
-        LogI("Message: %s: %s", message->chat->username.c_str(), message->text.c_str());
+        LogI("Message: chat->username=%s, chat->id=%d, text=%s", message->chat->username.c_str(), message->chat->id, message->text.c_str());
 
         if (message->forwardDate) // 是转发的消息
         {
@@ -62,7 +62,7 @@ int main()
         if (message->text.c_str()[0] == '/') // 如果是指令则跳过
             return;
 
-	if (message->chat->type == Chat::Type::Private)
+        if (message->chat->type == Chat::Type::Private)
             sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
     });
 
@@ -151,7 +151,7 @@ int main()
 
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
         LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
-
+        
         if (throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id))
             sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
 
