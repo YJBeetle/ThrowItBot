@@ -80,14 +80,49 @@ int main()
         if (message->text == "/throw" ||
             message->text == ("/throw@" + botUsername))
         { // 正常抛
-            if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
-                sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+            if (message->chat->type == Chat::Type::Private)
+            { // 私聊
+                if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
+                    sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+            }
+            else
+            {
+                auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from));
+                if (stickerFileId.empty())
+                {
+                    if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
+                        sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+                }
+                else
+                {
+                    if (sendSticker(bot.getApi(), message->chat->id, stickerFileId))
+                        sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+                }
+            }
         }
         else if (StringTools::startsWith(message->text, "/throw ") ||
                  StringTools::startsWith(message->text, "/throw@"))
         { // 抛Username
-            if (throwByUsername(bot.getApi(), message->chat->id, message->text.c_str() + sizeof("/throw ") - 1, message->from->id))
-                sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+            string username = message->text.c_str() + sizeof("/throw ") - 1;
+            if (message->chat->type == Chat::Type::Private)
+            { // 私聊
+                if (throwByUsername(bot.getApi(), message->chat->id, username, message->from->id))
+                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+            }
+            else
+            {
+                auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
+                if (stickerFileId.empty())
+                {
+                    if (throwByUsername(bot.getApi(), message->chat->id, username, message->from->id))
+                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                }
+                else
+                {
+                    if (sendSticker(bot.getApi(), message->chat->id, stickerFileId))
+                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                }
+            }
         }
         else
         { // 语法错误

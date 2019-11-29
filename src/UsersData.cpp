@@ -2,6 +2,7 @@
 
 #include "Log.h"
 #include "Global.h"
+#include "StringCheck.h"
 
 using namespace std;
 using namespace TgBot;
@@ -36,8 +37,12 @@ void UsersData::saveToFile()
     }
 }
 
-string searchFileIdByUsername(const Api &api, const string &username)
+string searchFileIdByUsername(const Api &api, const string &__username)
 {
+    string username = __username;
+    fixUsername(username);
+    lowercase(username);
+
     auto s = usersData.data.find(username);
     if (s != usersData.data.end())
     {

@@ -26,4 +26,4 @@ public:
     }
 };
 
-std::string searchFileIdByUsername(const TgBot::Api &api, const std::string &username);
+std::string searchFileIdByUsername(const TgBot::Api &api, const std::string &__username);
