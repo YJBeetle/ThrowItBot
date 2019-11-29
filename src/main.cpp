@@ -40,7 +40,7 @@ int main()
         {
             if (message->forwardFrom)
             {
-                if (throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom, message->from->id))
+                throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom, message->from->id) &&
                     sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
             else
@@ -53,9 +53,10 @@ int main()
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
         {
             if (message->text == ("@" + botUsername))
-                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻");
-            else if (throwByUsername(bot.getApi(), message->chat->id, message->text, message->from->id))
-                sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+            else
+                throwByUsername(bot.getApi(), message->chat->id, message->text, message->from->id) &&
+                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             return;
         }
 
@@ -82,22 +83,17 @@ int main()
         { // 正常抛
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
-                if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
+                throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id) &&
                     sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
             }
             else
             {
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from));
-                if (stickerFileId.empty())
-                {
-                    if (throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id))
-                        sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
-                }
-                else
-                {
-                    if (sendSticker(bot.getApi(), message->chat->id, stickerFileId))
-                        sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
-                }
+                stickerFileId.empty()
+                    ? throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id) &&
+                          sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )")
+                    : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
+                          sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
             }
         }
         else if (StringTools::startsWith(message->text, "/throw ") ||
@@ -106,22 +102,17 @@ int main()
             string username = message->text.c_str() + sizeof("/throw ") - 1;
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
-                if (throwByUsername(bot.getApi(), message->chat->id, username, message->from->id))
+                throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
                     sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
             else
             {
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
-                if (stickerFileId.empty())
-                {
-                    if (throwByUsername(bot.getApi(), message->chat->id, username, message->from->id))
-                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
-                }
-                else
-                {
-                    if (sendSticker(bot.getApi(), message->chat->id, stickerFileId))
-                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
-                }
+                stickerFileId.empty()
+                    ? throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
+                          sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>")
+                    : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
+                          sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             }
         }
         else
@@ -186,7 +177,7 @@ int main()
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
         LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
 
-        if (throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id))
+        throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id) &&
             sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
 
         try
