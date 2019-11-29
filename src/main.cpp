@@ -13,6 +13,7 @@
 #include "Throw.h"
 #include "InlineQuery.h"
 #include "Tg.h"
+#include "StringCheck.h"
 
 using namespace std;
 using namespace cv;
@@ -52,10 +53,11 @@ int main()
 
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
         {
-            if (message->text == ("@" + botUsername))
+            string username = message->text.c_str() + 1;
+            if (username == botUsername)
                 sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
-                throwByUsername(bot.getApi(), message->chat->id, message->text, message->from->id) &&
+                throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
                     sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
             return;
         }
@@ -99,20 +101,26 @@ int main()
         else if (StringTools::startsWith(message->text, "/throw ") ||
                  StringTools::startsWith(message->text, "/throw@"))
         { // 抛Username
-            string username = message->text.c_str() + sizeof("/throw ") - 1;
-            if (message->chat->type == Chat::Type::Private)
-            { // 私聊
-                throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
-                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
-            }
+            string username = message->text.c_str() + 7 /* sizeof("/throw ") - 1 */;
+            fixUsername(username);
+            if (username == botUsername)
+                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
             {
-                auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
-                stickerFileId.empty()
-                    ? throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
-                          sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>")
-                    : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
-                          sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                if (message->chat->type == Chat::Type::Private)
+                { // 私聊
+                    throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
+                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                }
+                else
+                {
+                    auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
+                    stickerFileId.empty()
+                        ? throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
+                              sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>")
+                        : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
+                              sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                }
             }
         }
         else
@@ -130,32 +138,44 @@ int main()
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
-        string query = inlineQuery->query;
-
-        if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
-            pushStickerToResultByUsername(bot.getApi(), results, query);
+        if (inlineQuery->query.c_str()[0] == '@') // 首位是@的话进行精确匹配
+            pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query);
         else
-            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, query);
+            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, inlineQuery->query);
 
         if (results.size() == 0)
         {
             auto result = make_shared<InlineQueryResultArticle>();
 
-            result->title = "No user found, touch me to throw it.";
-            result->id = "nouser";
+            string username = inlineQuery->query;
+            fixUsername(username);
+            if (username == botUsername)
+            {
+                result->title = "(┙>∧<)┙彡 ┻━┻"; // 不允许丢自己
+                result->id = "nouser";
 
-            auto text = make_shared<InputTextMessageContent>();
-            text->messageText = "Click to throw @" + query;
-            result->inputMessageContent = text;
+                auto text = make_shared<InputTextMessageContent>();
+                text->messageText = "(┙>∧<)┙彡 ┻━┻";
+                result->inputMessageContent = text;
+            }
+            else
+            {
+                result->title = "No user found, touch me to throw it.";
+                result->id = "nouser";
 
-            InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
-            button->text = "Throw @" + query;
-            button->callbackData = query;
-            auto replyMarkup = make_shared<InlineKeyboardMarkup>();
-            replyMarkup->inlineKeyboard.resize(1);
-            replyMarkup->inlineKeyboard[0].resize(1);
-            replyMarkup->inlineKeyboard[0][0] = button;
-            result->replyMarkup = replyMarkup;
+                auto text = make_shared<InputTextMessageContent>();
+                text->messageText = "Click to throw @" + inlineQuery->query;
+                result->inputMessageContent = text;
+
+                InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
+                button->text = "Throw @" + inlineQuery->query;
+                button->callbackData = inlineQuery->query;
+                auto replyMarkup = make_shared<InlineKeyboardMarkup>();
+                replyMarkup->inlineKeyboard.resize(1);
+                replyMarkup->inlineKeyboard[0].resize(1);
+                replyMarkup->inlineKeyboard[0][0] = button;
+                result->replyMarkup = replyMarkup;
+            }
 
             results.push_back(result);
         }
@@ -177,8 +197,13 @@ int main()
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
         LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
 
-        throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id) &&
-            sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
+        string username = callbackQuery->data;
+        fixUsername(username);
+        if (username == botUsername)
+            sendMessage(bot.getApi(), callbackQuery->from->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+        else
+            throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id) &&
+                sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
 
         try
         {
