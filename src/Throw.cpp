@@ -43,7 +43,7 @@ bool throwByImage(const Api &api, int64_t chatId,
     transform(username.begin(), username.end(), username.begin(), ::tolower); // 用户名转小写
     string stickerName = username + "_by_" + botUsername;                     // 贴纸名字
 
-    LogV("throwByImage: %s", username.c_str());
+    LogV("throwByImage: username=%s, title=%s, ownerId=%d, stickerName=%s", username.c_str(), __title.c_str(), ownerId, stickerName.c_str());
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
@@ -174,7 +174,7 @@ bool throwByUserId(const Api &api, int64_t chatId,
             LogE("throwByUserId: Get user photo error: %s", e.what());
             return false;
         }
-        string username = user->username.empty() ? "user" + to_string(user->id) : user->username;
+        string username = getUsername(user);
         return throwByImage(api, chatId,
                             username,
                             user->username.empty() ? "Throw" : "Throw @" + user->username,
