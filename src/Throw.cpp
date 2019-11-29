@@ -125,19 +125,7 @@ bool throwByImage(const Api &api, int64_t chatId,
 
     usersData.set(username, stickerFileId);
 
-    try
-    {
-        // api.sendMessage(chatId, "https://t.me/addstickers/" + stickerName, false, 0, std::make_shared<GenericReply>(), "", true); // 发送贴纸地址
-        // api.sendSticker(chatId, stickerFileId, 0, std::make_shared<GenericReply>(), true); // 发送一个贴纸
-        api.sendSticker(chatId, stickerFileId); // 发送一个贴纸
-    }
-    catch (TgException &e)
-    {
-        LogE("throwByImage: TgBot::Api::sendSticker: %s", e.what());
-        return false;
-    }
-
-    return true;
+    return sendSticker(api, chatId, stickerFileId);
 }
 
 // 丢一个Uid（聊天者本人或转发消息时才可获得）
