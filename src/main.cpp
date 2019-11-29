@@ -105,7 +105,6 @@ int main()
         vector<InlineQueryResult::Ptr> results; // 准备results
 
         string query = inlineQuery->query;
-        transform(query.begin(), query.end(), query.begin(), ::tolower); // 转小写
 
         if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
             pushStickerToResultByUsername(bot.getApi(), results, query);
