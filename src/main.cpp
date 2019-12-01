@@ -39,16 +39,19 @@ int main()
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { // 处理收到的直接消息
         LogI("Message: chat->username=%s, chat->id=%d, text=%s", message->chat->username.c_str(), message->chat->id, message->text.c_str());
 
+        auto &api = bot.getApi();
+        auto chatId = message->chat->id;
+
         if (message->forwardDate) // 是转发的消息
         {
             if (message->forwardFrom)
             {
-                throwByUserId(bot.getApi(), message->chat->id, message->forwardFrom, message->from->id) &&
-                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                throwByUserId(api, chatId, message->forwardFrom, message->from->id) &&
+                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
             }
             else
             { // 被转发用户的隐私设置原因无法获取uid
-                sendMessage(bot.getApi(), message->chat->id, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.");
+                sendMessage(api, chatId, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.");
             }
             return;
         }
@@ -57,10 +60,10 @@ int main()
         {
             string username = message->text.c_str() + 1;
             if (lowercaseEq(username, botUsername))
-                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+                sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
-                throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
-                    sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                throwByUsername(api, chatId, username, message->from->id) &&
+                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
             return;
         }
 
@@ -68,36 +71,45 @@ int main()
             return;
 
         if (message->chat->type == Chat::Type::Private) // 只有私聊显示help
-            sendMessage(bot.getApi(), message->chat->id, "Do you need /help ?");
+            sendMessage(api, chatId, "Do you need /help ?");
     });
 
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) { // /help
+        auto &api = bot.getApi();
+        auto chatId = message->chat->id;
+
         // 您可以说/throw扔自己！
         // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
-        sendMessage(bot.getApi(), message->chat->id, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.");
+        sendMessage(api, chatId, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.");
     });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message) { // /start
-        sendMessage(bot.getApi(), message->chat->id, "Do you need to be /throw ?");
+        auto &api = bot.getApi();
+        auto chatId = message->chat->id;
+
+        sendMessage(api, chatId, "Do you need to be /throw ?");
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) { // /throw
+        auto &api = bot.getApi();
+        auto chatId = message->chat->id;
+
         if (lowercaseEq(message->text, "/throw") ||
             lowercaseEq(message->text, "/throw@" + botUsername))
         { // 正常抛
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
-                throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id) &&
-                    sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+                throwByUserId(api, chatId, message->from, message->from->id) &&
+                    sendMessage(api, chatId, "( ﹁ ﹁ )");
             }
             else
             {
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from));
                 stickerFileId.empty()
-                    ? throwByUserId(bot.getApi(), message->chat->id, message->from, message->from->id) &&
-                          sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )")
-                    : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
-                          sendMessage(bot.getApi(), message->chat->id, "( ﹁ ﹁ )");
+                    ? throwByUserId(api, chatId, message->from, message->from->id) &&
+                          sendMessage(api, chatId, "( ﹁ ﹁ )")
+                    : sendSticker(api, chatId, stickerFileId) &&
+                          sendMessage(api, chatId, "( ﹁ ﹁ )");
             }
         }
         else if (StringTools::startsWith(message->text, "/throw ") ||
@@ -106,33 +118,36 @@ int main()
             string username = message->text.c_str() + 7 /* sizeof("/throw ") - 1 */;
             fixUsername(username);
             if (lowercaseEq(username, botUsername))
-                sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+                sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
             {
                 if (message->chat->type == Chat::Type::Private)
                 { // 私聊
-                    throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
-                        sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                    throwByUsername(api, chatId, username, message->from->id) &&
+                        sendMessage(api, chatId, "<(ˉ^ˉ)>");
                 }
                 else
                 {
                     auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
                     stickerFileId.empty()
-                        ? throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
-                              sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>")
-                        : sendSticker(bot.getApi(), message->chat->id, stickerFileId) &&
-                              sendMessage(bot.getApi(), message->chat->id, "<(ˉ^ˉ)>");
+                        ? throwByUsername(api, chatId, username, message->from->id) &&
+                              sendMessage(api, chatId, "<(ˉ^ˉ)>")
+                        : sendSticker(api, chatId, stickerFileId) &&
+                              sendMessage(api, chatId, "<(ˉ^ˉ)>");
                 }
             }
         }
         else
         { // 语法错误
-            sendMessage(bot.getApi(), message->chat->id, "Command error, you should /throw UserName");
+            sendMessage(api, chatId, "Command error, you should /throw UserName");
         }
     });
 
     bot.getEvents().onUnknownCommand([&bot](Message::Ptr message) { // 未知指令
-        sendMessage(bot.getApi(), message->chat->id, "Unknow command.\nDo you need /help ?");
+        auto &api = bot.getApi();
+        auto chatId = message->chat->id;
+
+        sendMessage(api, chatId, "Unknow command.\nDo you need /help ?");
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
