@@ -197,6 +197,13 @@ bool throwByUsername(const Api &api, int64_t chatId,
 
     string username = __username;
     fixUsername(username);
+    
+    if (!checkUsername(username))
+    {
+        LogE("throwByUsername: Username is bad.");
+        sendMessage(api, chatId, "Username is bad.");
+        return false;
+    }
 
     if (lowercaseEq(username, botUsername))
     {

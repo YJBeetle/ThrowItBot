@@ -6,6 +6,21 @@ inline void fixUsername(std::string &username)
         username = username.c_str() + 1;
 }
 
+inline bool checkUsername(const std::string &username)
+{
+    for (auto ite = username.begin(); ite != username.end(); ite++)
+    {
+        if (
+            !(
+                (*ite > '0' && *ite < '9') ||
+                (*ite > 'a' && *ite < 'z') ||
+                (*ite > 'A' && *ite < 'Z') ||
+                (*ite == '_')))
+            return false;
+    }
+    return true;
+}
+
 inline void lowercase(std::string &str)
 {
     transform(str.begin(), str.end(), str.begin(), ::tolower); // 用户名转小写
