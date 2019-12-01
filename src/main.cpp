@@ -54,7 +54,7 @@ int main()
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
         {
             string username = message->text.c_str() + 1;
-            if (username == botUsername)
+            if (lowercaseEq(username, botUsername))
                 sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
                 throwByUsername(bot.getApi(), message->chat->id, username, message->from->id) &&
@@ -80,8 +80,8 @@ int main()
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) { // /throw
-        if (message->text == "/throw" ||
-            message->text == ("/throw@" + botUsername))
+        if (lowercaseEq(message->text, "/throw") ||
+            lowercaseEq(message->text, "/throw@" + botUsername))
         { // 正常抛
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
@@ -103,7 +103,7 @@ int main()
         { // 抛Username
             string username = message->text.c_str() + 7 /* sizeof("/throw ") - 1 */;
             fixUsername(username);
-            if (username == botUsername)
+            if (lowercaseEq(username, botUsername))
                 sendMessage(bot.getApi(), message->chat->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
             else
             {
@@ -149,7 +149,7 @@ int main()
 
             string username = inlineQuery->query;
             fixUsername(username);
-            if (username == botUsername)
+            if (lowercaseEq(username, botUsername))
             {
                 result->title = "(┙>∧<)┙彡 ┻━┻"; // 不允许丢自己
                 result->id = "nouser";
@@ -199,7 +199,7 @@ int main()
 
         string username = callbackQuery->data;
         fixUsername(username);
-        if (username == botUsername)
+        if (lowercaseEq(username, botUsername))
             sendMessage(bot.getApi(), callbackQuery->from->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
         else
             throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id) &&
