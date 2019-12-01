@@ -198,7 +198,7 @@ bool throwByUsername(const Api &api, int64_t chatId,
     string username = __username;
     fixUsername(username);
 
-    if (username == botUsernameLowercase)
+    if (lowercaseEq(username, botUsername))
     {
         sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
         return false;

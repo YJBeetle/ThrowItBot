@@ -20,7 +20,6 @@ using namespace cv;
 using namespace TgBot;
 
 std::string botUsername;
-std::string botUsernameLowercase;
 int32_t botId = 0;
 UsersData usersData;
 
@@ -58,12 +57,9 @@ int main()
 
         if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
         {
-            string username = message->text.c_str() + 1;
-            if (lowercaseEq(username, botUsername))
-                sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
-            else
-                throwByUsername(api, chatId, username, message->from->id) &&
-                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
+            auto &username = message->text;
+            throwByUsername(api, chatId, username, message->from->id) &&
+                sendMessage(api, chatId, "<(ˉ^ˉ)>");
             return;
         }
 
@@ -116,25 +112,19 @@ int main()
                  StringTools::startsWith(message->text, "/throw@"))
         { // 抛Username
             string username = message->text.c_str() + 7 /* sizeof("/throw ") - 1 */;
-            fixUsername(username);
-            if (lowercaseEq(username, botUsername))
-                sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+            if (message->chat->type == Chat::Type::Private)
+            { // 私聊
+                throwByUsername(api, chatId, username, message->from->id) &&
+                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
+            }
             else
             {
-                if (message->chat->type == Chat::Type::Private)
-                { // 私聊
-                    throwByUsername(api, chatId, username, message->from->id) &&
-                        sendMessage(api, chatId, "<(ˉ^ˉ)>");
-                }
-                else
-                {
-                    auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
-                    stickerFileId.empty()
-                        ? throwByUsername(api, chatId, username, message->from->id) &&
-                              sendMessage(api, chatId, "<(ˉ^ˉ)>")
-                        : sendSticker(api, chatId, stickerFileId) &&
-                              sendMessage(api, chatId, "<(ˉ^ˉ)>");
-                }
+                auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
+                stickerFileId.empty()
+                    ? throwByUsername(api, chatId, username, message->from->id) &&
+                          sendMessage(api, chatId, "<(ˉ^ˉ)>")
+                    : sendSticker(api, chatId, stickerFileId) &&
+                          sendMessage(api, chatId, "<(ˉ^ˉ)>");
             }
         }
         else
@@ -151,21 +141,22 @@ int main()
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
-        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), inlineQuery->query.c_str());
+        string username = inlineQuery->query;
+        fixUsername(username);
+
+        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), username.c_str());
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
-        if (inlineQuery->query.c_str()[0] == '@') // 首位是@的话进行精确匹配
-            pushStickerToResultByUsername(bot.getApi(), results, inlineQuery->query);
+        if (username.c_str()[0] == '@') // 首位是@的话进行精确匹配
+            pushStickerToResultByUsername(bot.getApi(), results, username);
         else
-            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, inlineQuery->query);
+            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, username);
 
         if (results.size() == 0)
         {
             auto result = make_shared<InlineQueryResultArticle>();
 
-            string username = inlineQuery->query;
-            fixUsername(username);
             if (lowercaseEq(username, botUsername))
             {
                 result->title = "(┙>∧<)┙彡 ┻━┻"; // 不允许丢自己
@@ -181,12 +172,12 @@ int main()
                 result->id = "nouser";
 
                 auto text = make_shared<InputTextMessageContent>();
-                text->messageText = "Click to throw @" + inlineQuery->query;
+                text->messageText = "Click to throw @" + username;
                 result->inputMessageContent = text;
 
                 InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
-                button->text = "Throw @" + inlineQuery->query;
-                button->callbackData = inlineQuery->query;
+                button->text = "Throw @" + username;
+                button->callbackData = username;
                 auto replyMarkup = make_shared<InlineKeyboardMarkup>();
                 replyMarkup->inlineKeyboard.resize(1);
                 replyMarkup->inlineKeyboard[0].resize(1);
@@ -212,15 +203,12 @@ int main()
     });
 
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
-        LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), callbackQuery->data.c_str());
+        auto &username = callbackQuery->data;
 
-        string username = callbackQuery->data;
-        fixUsername(username);
-        if (lowercaseEq(username, botUsername))
-            sendMessage(bot.getApi(), callbackQuery->from->id, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
-        else
-            throwByUsername(bot.getApi(), callbackQuery->from->id, callbackQuery->data, callbackQuery->from->id) &&
-                sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
+        LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), username.c_str());
+
+        throwByUsername(bot.getApi(), callbackQuery->from->id, username, callbackQuery->from->id) &&
+            sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
 
         try
         {
@@ -239,10 +227,9 @@ int main()
         try
         {
             LogI("Starting ...");
-            botUsernameLowercase = botUsername = bot.getApi().getMe()->username;
-            lowercase(botUsernameLowercase);
+            botUsername = bot.getApi().getMe()->username;
             botId = bot.getApi().getMe()->id;
-            LogI("Bot username: %s", botUsername.c_str());
+            LogI("Bot username: %s %d", botUsername.c_str(), botId);
 
             TgLongPoll longPoll(bot);
             while (true)
