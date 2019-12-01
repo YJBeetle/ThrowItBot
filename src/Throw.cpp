@@ -136,6 +136,12 @@ bool throwByUserId(const Api &api, int64_t chatId,
 {
     LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
 
+    if (user->id == botId)
+    {
+        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+        return false;
+    }
+
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
     UserProfilePhotos::Ptr userPhotosInfo;
@@ -189,10 +195,16 @@ bool throwByUsername(const Api &api, int64_t chatId,
 {
     LogV("throwByUsername: %s", __username.c_str());
 
-    sendChatActionUploadPhoto(api, chatId); // 设置正在发送
-
     string username = __username;
     fixUsername(username);
+
+    if (username == botUsernameLowercase)
+    {
+        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+        return false;
+    }
+
+    sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
     CurlHttpClient curl;
     string url = "https://t.me/" + username;

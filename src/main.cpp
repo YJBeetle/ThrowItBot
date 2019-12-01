@@ -20,6 +20,8 @@ using namespace cv;
 using namespace TgBot;
 
 std::string botUsername;
+std::string botUsernameLowercase;
+int32_t botId = 0;
 UsersData usersData;
 
 int main()
@@ -222,7 +224,9 @@ int main()
         try
         {
             LogI("Starting ...");
-            botUsername = bot.getApi().getMe()->username;
+            botUsernameLowercase = botUsername = bot.getApi().getMe()->username;
+            lowercase(botUsernameLowercase);
+            botId = bot.getApi().getMe()->id;
             LogI("Bot username: %s", botUsername.c_str());
 
             TgLongPoll longPoll(bot);
