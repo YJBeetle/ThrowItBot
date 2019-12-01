@@ -24,6 +24,7 @@ bool sendChatActionUploadPhoto(const Api &api, int64_t chatId)
 bool sendMessage(const Api &api, int64_t chatId,
                  const string &message)
 {
+    LogI("sendChatActionUploadPhoto: message: %s", message.c_str());
     try
     {
         api.sendMessage(chatId, message, false, 0, make_shared<GenericReply>(), "", true);
