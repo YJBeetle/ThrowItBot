@@ -12,9 +12,9 @@ inline bool checkUsername(const std::string &username)
     {
         if (
             !(
-                (*ite > '0' && *ite < '9') ||
-                (*ite > 'a' && *ite < 'z') ||
-                (*ite > 'A' && *ite < 'Z') ||
+                (*ite >= '0' && *ite <= '9') ||
+                (*ite >= 'a' && *ite <= 'z') ||
+                (*ite >= 'A' && *ite <= 'Z') ||
                 (*ite == '_')))
             return false;
     }
