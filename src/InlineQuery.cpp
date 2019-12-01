@@ -13,7 +13,6 @@ void pushStickerToResultByUsername(const Api &api,
                                    const string &__username)
 {
     string username = __username;
-    fixUsername(username);
     lowercase(username);
 
     auto fileId = searchFileIdByUsername(api, username);

@@ -151,20 +151,22 @@ int main()
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
-        string username = inlineQuery->query;
-        fixUsername(username);
+        auto &query = inlineQuery->query;
 
-        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), username.c_str());
+        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), query.c_str());
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
-        if (username.c_str()[0] == '@') // 首位是@的话进行精确匹配
-            pushStickerToResultByUsername(bot.getApi(), results, username);
+        if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
+            pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1);
         else
-            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, username);
+            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, query);
 
         if (results.size() == 0)
         {
+            string username = query;
+            fixUsername(username);
+
             auto result = make_shared<InlineQueryResultArticle>();
 
             if (lowercaseEq(username, botUsername))
