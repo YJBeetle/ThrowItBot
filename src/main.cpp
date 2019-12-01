@@ -20,6 +20,7 @@ using namespace cv;
 using namespace TgBot;
 
 std::string botUsername;
+std::string botUsernameLowercase;
 int32_t botId = 0;
 UsersData usersData;
 
@@ -90,9 +91,12 @@ int main()
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
 
-        if (lowercaseEq(message->text, "/throw") ||
-            lowercaseEq(message->text, "/throw@" + botUsername))
-        { // 正常抛
+        string command = message->text;
+        lowercase(command);
+
+        if (command == "/throw" ||                       // "/throw"
+            command == "/throw@" + botUsernameLowercase) // "/throw@ThrowItBot"
+        {                                                // 正常抛
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
                 throwByUserId(api, chatId, message->from, message->from->id) &&
@@ -108,10 +112,16 @@ int main()
                           sendMessage(api, chatId, "( ﹁ ﹁ )");
             }
         }
-        else if (StringTools::startsWith(message->text, "/throw ") ||
-                 StringTools::startsWith(message->text, "/throw@"))
-        { // 抛Username
-            string username = message->text.c_str() + 7 /* sizeof("/throw ") - 1 */;
+        else if (StringTools::startsWith(command, "/throw ") || // "/throw <Username>"
+                 StringTools::startsWith(command, "/throw@"))   // "/throw@<Username>", "/throw@ThrowItBot <Username>"
+        {                                                       // 抛Username
+            string username;
+            if (StringTools::startsWith(command, "/throw@" + botUsernameLowercase + " ") || // "/throw@ThrowItBot <Username>"
+                StringTools::startsWith(command, "/throw@" + botUsernameLowercase + "@"))   // "/throw@ThrowItBot@<Username>"
+                username = message->text.c_str() + 7 /* strlen("/throw@") */ + botUsernameLowercase.length() + 1 /* strlen( ) */;
+            else
+                username = message->text.c_str() + 7 /* strlen("/throw ") */;
+
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
                 throwByUsername(api, chatId, username, message->from->id) &&
@@ -227,7 +237,8 @@ int main()
         try
         {
             LogI("Starting ...");
-            botUsername = bot.getApi().getMe()->username;
+            botUsernameLowercase = botUsername = bot.getApi().getMe()->username;
+            lowercase(botUsernameLowercase);
             botId = bot.getApi().getMe()->id;
             LogI("Bot username: %s %d", botUsername.c_str(), botId);
 
