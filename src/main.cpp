@@ -77,7 +77,7 @@ int main()
 
         // 您可以说/throw扔自己！
         // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
-        sendMessage(api, chatId, "You can say /throw to throw youself!\nAnd you can forward message to me, or @he/her, to let me throw him/her.");
+        sendMessage(api, chatId, "You can say /throw to throw yourself!\nAnd you can forward message to me, @him/her, to let me throw him/her.");
     });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message) { // /start
