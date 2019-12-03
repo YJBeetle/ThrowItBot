@@ -103,13 +103,11 @@ int main()
                     sendMessage(api, chatId, "( ﹁ ﹁ )");
             }
             else
-            {
-                auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from));
+            {                                                                                          // 如果是群聊
+                auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from)); // 先搜索是否存在
                 stickerFileId.empty()
-                    ? throwByUserId(api, chatId, message->from, message->from->id) &&
-                          sendMessage(api, chatId, "( ﹁ ﹁ )")
-                    : sendSticker(api, chatId, stickerFileId) &&
-                          sendMessage(api, chatId, "( ﹁ ﹁ )");
+                    ? throwByUserId(api, chatId, message->from, message->from->id) // 不存在则创建
+                    : sendSticker(api, chatId, stickerFileId);                     // 存在则直接丢表情
             }
         }
         else if (StringTools::startsWith(command, "/throw ") || // "/throw <Username>"
@@ -128,13 +126,11 @@ int main()
                     sendMessage(api, chatId, "<(ˉ^ˉ)>");
             }
             else
-            {
-                auto stickerFileId = searchFileIdByUsername(bot.getApi(), username);
+            {                                                                        // 如果是群聊
+                auto stickerFileId = searchFileIdByUsername(bot.getApi(), username); // 先搜索是否存在
                 stickerFileId.empty()
-                    ? throwByUsername(api, chatId, username, message->from->id) &&
-                          sendMessage(api, chatId, "<(ˉ^ˉ)>")
-                    : sendSticker(api, chatId, stickerFileId) &&
-                          sendMessage(api, chatId, "<(ˉ^ˉ)>");
+                    ? throwByUsername(api, chatId, username, message->from->id) // 不存在则创建
+                    : sendSticker(api, chatId, stickerFileId);                  // 存在则直接丢表情
             }
         }
         else
@@ -164,7 +160,7 @@ int main()
 
         if (results.size() == 0) // 如果列表依然是空的，则显示按钮用于创建
             pushClickToThrow(bot.getApi(), results, query);
-        
+
         // debug json
         // TgTypeParser tgTypeParser;
         // cout << tgTypeParser.parseArray<InlineQueryResult>(&TgTypeParser::parseInlineQueryResult, results) << endl;
