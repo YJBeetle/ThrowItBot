@@ -143,7 +143,10 @@ int main()
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
 
-        sendMessage(api, chatId, "Unknow command.\nDo you need /help ?");
+        if (message->chat->type == Chat::Type::Private)
+        { // 私聊
+            sendMessage(api, chatId, "Unknow command.\nDo you need /help ?");
+        }
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
