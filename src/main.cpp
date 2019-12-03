@@ -162,44 +162,9 @@ int main()
         else
             pushStickerToResultByUsernameFuzzy(bot.getApi(), results, query);
 
-        if (results.size() == 0)
-        {
-            string username = query;
-            fixUsername(username);
-
-            auto result = make_shared<InlineQueryResultArticle>();
-
-            if (lowercaseEq(username, botUsername))
-            {
-                result->title = "(┙>∧<)┙彡 ┻━┻"; // 不允许丢自己
-                result->id = "nouser";
-
-                auto text = make_shared<InputTextMessageContent>();
-                text->messageText = "(┙>∧<)┙彡 ┻━┻";
-                result->inputMessageContent = text;
-            }
-            else
-            {
-                result->title = "No user found, touch me to throw it.";
-                result->id = "nouser";
-
-                auto text = make_shared<InputTextMessageContent>();
-                text->messageText = "Click to throw @" + username;
-                result->inputMessageContent = text;
-
-                InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
-                button->text = "Throw @" + username;
-                button->callbackData = username;
-                auto replyMarkup = make_shared<InlineKeyboardMarkup>();
-                replyMarkup->inlineKeyboard.resize(1);
-                replyMarkup->inlineKeyboard[0].resize(1);
-                replyMarkup->inlineKeyboard[0][0] = button;
-                result->replyMarkup = replyMarkup;
-            }
-
-            results.push_back(result);
-        }
-
+        if (results.size() == 0) // 如果列表依然是空的，则显示按钮用于创建
+            pushClickToThrow(bot.getApi(), results, query);
+        
         // debug json
         // TgTypeParser tgTypeParser;
         // cout << tgTypeParser.parseArray<InlineQueryResult>(&TgTypeParser::parseInlineQueryResult, results) << endl;

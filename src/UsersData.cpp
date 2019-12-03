@@ -49,7 +49,7 @@ string searchFileIdByUsername(const Api &api, const string &__username)
         return s->second;
     }
     else
-    {
+    { // 如果找不到则去tg服务器上搜索
         string stickerName = username + "_by_" + botUsername; // 贴纸名字
         try
         {
