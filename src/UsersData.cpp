@@ -43,6 +43,9 @@ string searchFileIdByUsername(const Api &api, const string &__username)
     fixUsername(username);
     lowercase(username);
 
+    if (checkSelf(api,chatId,username)) // 不允许丢自己
+        return "";
+
     auto s = usersData.data.find(username);
     if (s != usersData.data.end())
     {
