@@ -44,7 +44,7 @@ inline std::string getUsername(TgBot::User::Ptr &user)
 
 inline std::string getStickerName(const std::string &username)
 {
-    return username + "_by_" + botUsername; // 贴纸名字
+    return "Throw_" + username + "_by_" + botUsername; // 贴纸名字
 }
 
 inline bool checkSelf(const std::string &username)
