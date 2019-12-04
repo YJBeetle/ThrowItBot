@@ -39,7 +39,12 @@ inline bool lowercaseEq(const std::string &__str1, const std::string &__str2)
 
 inline std::string getUsername(TgBot::User::Ptr &user)
 {
-    return user->username.empty() ? "user" + std::to_string(user->id) : user->username;
+    return user->username.empty() ? "user" + std::to_string(user->id) : user->username; // 如果用户名为空则用"user"+uid
+}
+
+inline std::string getStickerName(const std::string &username)
+{
+    return username + "_by_" + botUsername; // 贴纸名字
 }
 
 inline bool checkSelf(const std::string &username)

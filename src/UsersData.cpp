@@ -53,7 +53,7 @@ string searchFileIdByUsername(const Api &api, const string &__username)
     }
     else
     { // 如果找不到则去tg服务器上搜索
-        string stickerName = username + "_by_" + botUsername; // 贴纸名字
+        string stickerName = getStickerName(username); // 贴纸名字
         try
         {
             auto stickerSet = api.getStickerSet(stickerName);

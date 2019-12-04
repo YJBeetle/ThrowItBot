@@ -42,7 +42,7 @@ bool throwByImage(const Api &api, int64_t chatId,
 {
     string username = __username;
     lowercase(username);
-    string stickerName = username + "_by_" + botUsername; // 贴纸名字
+    string stickerName = getStickerName(username) ; // 贴纸名字
 
     LogV("throwByImage: username=%s, title=%s, ownerId=%d, stickerName=%s", username.c_str(), __title.c_str(), ownerId, stickerName.c_str());
 
