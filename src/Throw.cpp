@@ -136,11 +136,8 @@ bool throwByUserId(const Api &api, int64_t chatId,
 {
     LogV("throwByUserId: %s %d", user->username.c_str(), user->id);
 
-    if (user->id == botId)
-    {
-        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+    if (checkSelf(api,chatId,user->id)) // 不允许丢自己
         return false;
-    }
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
@@ -197,7 +194,7 @@ bool throwByUsername(const Api &api, int64_t chatId,
 
     string username = __username;
     fixUsername(username);
-    
+
     if (!checkUsername(username))
     {
         LogE("throwByUsername: Username is bad.");
@@ -205,11 +202,8 @@ bool throwByUsername(const Api &api, int64_t chatId,
         return false;
     }
 
-    if (lowercaseEq(username, botUsername))
-    {
-        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+    if (checkSelf(api,chatId,username)) // 不允许丢自己
         return false;
-    }
 
     sendChatActionUploadPhoto(api, chatId); // 设置正在发送
 
