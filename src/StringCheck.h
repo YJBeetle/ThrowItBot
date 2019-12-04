@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tgbot/tgbot.h>
+
 inline void fixUsername(std::string &username)
 {
     if (username.c_str()[0] == '@') // 首位是@的话去掉
@@ -33,4 +35,23 @@ inline bool lowercaseEq(const std::string &__str1, const std::string &__str2)
     transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
     transform(str2.begin(), str2.end(), str2.begin(), ::tolower);
     return str1 == str2;
+}
+
+inline std::string getUsername(TgBot::User::Ptr &user)
+{
+    return user->username.empty() ? "user" + std::to_string(user->id) : user->username;
+}
+
+inline bool checkSelf(const std::string &username)
+{
+    if (lowercaseEq(username, botUsername))
+        return false;
+    return true;
+}
+
+inline bool checkSelf(uint64_t userId)
+{
+    if (userId == botId)
+        return false;
+    return true;
 }
