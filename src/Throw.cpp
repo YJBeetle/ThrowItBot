@@ -109,6 +109,8 @@ bool throwByImage(const Api &api, int64_t chatId,
         catch (TgException &e)
         {
             LogE("throwByImage: TgBot::Api::createNewStickerSet: %s", e.what());
+            if(strcmp(e.what(),"Bad Request: PEER_ID_INVALID")==0)
+                sendMessage(api, chatId, "Create new sticker failed, because tg server refused ownerid.\nPlease check privacy settings, or try to chat with me privately.")
             return false;
         }
     }

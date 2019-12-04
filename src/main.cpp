@@ -106,8 +106,7 @@ int main()
             {                                                                                          // 如果是群聊
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from)); // 先搜索是否存在
                 stickerFileId.empty()
-                    ? throwByUserId(api, chatId, message->from, message->from->id) || // 不存在则创建
-                          sendMessage(api, chatId, "Failed, try to chat with me privately.")
+                    ? throwByUserId(api, chatId, message->from, message->from->id) // 不存在则创建
                     : sendSticker(api, chatId, stickerFileId); // 存在则直接丢表情
             }
         }
@@ -130,8 +129,7 @@ int main()
             {                                                                        // 如果是群聊
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), username); // 先搜索是否存在
                 stickerFileId.empty()
-                    ? throwByUsername(api, chatId, username, message->from->id) || // 不存在则创建
-                          sendMessage(api, chatId, "Failed, try to chat with me privately.")
+                    ? throwByUsername(api, chatId, username, message->from->id) // 不存在则创建
                     : sendSticker(api, chatId, stickerFileId); // 存在则直接丢表情
             }
         }
