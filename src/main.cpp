@@ -77,11 +77,11 @@ int main()
 
         if (message->chat->type == Chat::Type::Private)
         { // 私聊
-        sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息给我，或者在这里@他。");
+            sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息给我，或者在这里@他。");
         }
         else
         {
-        sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息私聊给我，或者在这里发送 /throw 他的用户名。");
+            sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息私聊给我，或者在这里发送 /throw 他的用户名。");
         }
     });
 
@@ -112,7 +112,7 @@ int main()
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), getUsername(message->from)); // 先搜索是否存在
                 stickerFileId.empty()
                     ? throwByUserId(api, chatId, message->from, message->from->id) // 不存在则创建
-                    : sendSticker(api, chatId, stickerFileId); // 存在则直接丢表情
+                    : sendSticker(api, chatId, stickerFileId);                     // 存在则直接丢表情
             }
         }
         else if (StringTools::startsWith(command, "/throw ") || // "/throw <Username>"
@@ -121,9 +121,12 @@ int main()
             string username;
             if (StringTools::startsWith(command, "/throw@" + botUsernameLowercase + " ") || // "/throw@ThrowItBot <Username>"
                 StringTools::startsWith(command, "/throw@" + botUsernameLowercase + "@"))   // "/throw@ThrowItBot@<Username>"
-                username = message->text.c_str() + 7 /* strlen("/throw@") */ + botUsernameLowercase.length() + 1 /* strlen( ) */;
+                username = message->text.c_str() + 7 /* strlen("/throw@") */ + botUsernameLowercase.length() + 1 /* strlen( ) || strlen(@) */;
+            else if (StringTools::startsWith(command, "/throw @" + botUsernameLowercase + " ") || // "/throw @ThrowItBot <Username>"
+                     StringTools::startsWith(command, "/throw @" + botUsernameLowercase + "@"))   // "/throw @ThrowItBot@<Username>"
+                username = message->text.c_str() + 8 /* strlen("/throw @") */ + botUsernameLowercase.length() + 1 /* strlen( ) || strlen(@) */;
             else
-                username = message->text.c_str() + 7 /* strlen("/throw ") */;
+                username = message->text.c_str() + 7 /* strlen("/throw ") || strlen("/throw@") */;
 
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
@@ -135,7 +138,7 @@ int main()
                 auto stickerFileId = searchFileIdByUsername(bot.getApi(), username); // 先搜索是否存在
                 stickerFileId.empty()
                     ? throwByUsername(api, chatId, username, message->from->id) // 不存在则创建
-                    : sendSticker(api, chatId, stickerFileId); // 存在则直接丢表情
+                    : sendSticker(api, chatId, stickerFileId);                  // 存在则直接丢表情
             }
         }
         else
