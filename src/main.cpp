@@ -51,7 +51,7 @@ int main()
             }
             else
             { // 被转发用户的隐私设置原因无法获取uid
-                sendMessage(api, chatId, "The user's privacy settings do not allow forwarding, can't get the avatar of this user.");
+                sendMessage(api, chatId, "该用户的隐私设置不允许转发，所以无法获取他ID。\n请尝试直接在这里@他");
             }
             return;
         }
@@ -68,23 +68,28 @@ int main()
             return;
 
         if (message->chat->type == Chat::Type::Private) // 只有私聊显示help
-            sendMessage(api, chatId, "Do you need /help ?");
+            sendMessage(api, chatId, "你在说什么？\n如果想要什么帮助的话请给我发 /help");
     });
 
     bot.getEvents().onCommand("help", [&bot](Message::Ptr message) { // /help
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
 
-        // 您可以说/throw扔自己！
-        // 并且您可以转发消息给我，或者@他/她，来让我扔他/她。
-        sendMessage(api, chatId, "You can say /throw to throw yourself!\nAnd you can forward message to me, @him/her, to let me throw him/her.");
+        if (message->chat->type == Chat::Type::Private)
+        { // 私聊
+        sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息给我，或者在这里@他。");
+        }
+        else
+        {
+        sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息私聊给我，或者在这里发送 /throw 他的用户名。");
+        }
     });
 
     bot.getEvents().onCommand("start", [&bot](Message::Ptr message) { // /start
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
 
-        sendMessage(api, chatId, "Do you need to be /throw ?");
+        sendMessage(api, chatId, "快给我发 /throw 试试 ლ(╹◡╹ლ)");
     });
 
     bot.getEvents().onCommand("throw", [&bot](Message::Ptr message) { // /throw
@@ -135,7 +140,7 @@ int main()
         }
         else
         { // 语法错误
-            sendMessage(api, chatId, "Command error, you should /throw UserName");
+            sendMessage(api, chatId, "命令格式错误，正确的格式为：/throw UserName");
         }
     });
 
@@ -145,7 +150,7 @@ int main()
 
         if (message->chat->type == Chat::Type::Private)
         { // 私聊
-            sendMessage(api, chatId, "Unknow command.\nDo you need /help ?");
+            sendMessage(api, chatId, "你在说什么？\n如果想要什么帮助的话请给我发 /help");
         }
     });
 

@@ -110,7 +110,7 @@ bool throwByImage(const Api &api, int64_t chatId,
         {
             LogE("throwByImage: TgBot::Api::createNewStickerSet: %s", e.what());
             if(strcmp(e.what(),"Bad Request: PEER_ID_INVALID")==0)
-                sendMessage(api, chatId, "Create new sticker failed, because tg server refused ownerid.\nPlease check privacy settings, or try to chat with me privately.");
+                sendMessage(api, chatId, "贴图创建失败，原因是Telegram的服务器拒绝将你添加为该表情的所有者\n请尝试与我私聊重试");
             return false;
         }
     }
@@ -140,7 +140,7 @@ bool throwByUserId(const Api &api, int64_t chatId,
 
     if (!checkSelf(user->id))
     {
-        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+        sendMessage(api, chatId, "哼～ (┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
         return false;
     }
 
@@ -182,7 +182,7 @@ bool throwByUserId(const Api &api, int64_t chatId,
     else
     {
         LogW("throwByUserId: No photos.");
-        sendMessage(api, chatId, "No photos.");
+        sendMessage(api, chatId, "他没有头像 (◞‸◟)");
         return false;
     }
 }
@@ -203,13 +203,13 @@ bool throwByUsername(const Api &api, int64_t chatId,
     if (!checkUsername(username))
     {
         LogE("throwByUsername: Username is bad.");
-        sendMessage(api, chatId, "Username is bad.");
+        sendMessage(api, chatId, "用户名不符合规则 (┛`д´)┛");
         return false;
     }
 
     if (!checkSelf(username))
     {
-        sendMessage(api, chatId, "(┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
+        sendMessage(api, chatId, "哼～ (┙>∧<)┙彡 ┻━┻"); // 不允许丢自己
         return false;
     }
 
@@ -240,7 +240,7 @@ bool throwByUsername(const Api &api, int64_t chatId,
     else
     {
         LogW("throwByUsername: No photos.");
-        sendMessage(api, chatId, "No photos.");
+        sendMessage(api, chatId, "没有找到他的照片 (◞‸◟)");
         return false;
     }
 }
