@@ -54,9 +54,20 @@ message(STATUS "    libraries: ${CAIRO_LIBRARIES}")
 include_directories(${CAIRO_INCLUDE_DIRS})
 link_directories(${CAIRO_LIBDIR})
 
-## Freetype
-find_package(Freetype REQUIRED)
-include_directories(${FREETYPE_INCLUDE_DIRS})
+## pango
+pkg_check_modules(PANGO pangocairo)
+if (NOT CAIRO_FOUND)
+message(FATAL_ERROR "Pango not found!")
+endif ()
+message(STATUS "Pango library status:")
+message(STATUS "    version: ${PANGO_VERSION}")
+message(STATUS "    include path: ${PANGO_INCLUDE_DIRS}")
+message(STATUS "    lib path: ${PANGO_LIBDIR}")
+message(STATUS "    libs path: ${PANGO_LIBRARY_DIRS}")
+message(STATUS "    libraries: ${PANGO_LIBRARIES}")
+include_directories(${PANGO_INCLUDE_DIRS})
+link_directories(${PANGO_LIBDIR})
+link_directories(${PANGO_LIBRARY_DIRS})
 
 ## rsvg
 pkg_check_modules(RSVG librsvg-2.0)
@@ -67,9 +78,11 @@ message(STATUS "rsvg library status:")
 message(STATUS "    version: ${RSVG_VERSION}")
 message(STATUS "    include path: ${RSVG_INCLUDE_DIRS}")
 message(STATUS "    lib path: ${RSVG_LIBDIR}")
+message(STATUS "    libs path: ${RSVG_LIBRARY_DIRS}")
 message(STATUS "    libraries: ${RSVG_LIBRARIES}")
 include_directories(${RSVG_INCLUDE_DIRS})
 link_directories(${RSVG_LIBDIR})
+link_directories(${RSVG_LIBRARY_DIRS})
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)
@@ -100,9 +113,8 @@ set(LIB_LIST
     ${CURL_LIBRARIES}
     TgBot
     ${CAIRO_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
-    # ${RSVG_LIBRARIES}
-    rsvg-2
+    ${PANGO_LIBRARIES}
+    ${RSVG_LIBRARIES}
     ${OpenCV_LIBS}
     ${WEBP_LIBRARIES}
     ArtRobot
