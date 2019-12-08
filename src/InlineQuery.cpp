@@ -76,7 +76,7 @@ void pushClickToThrow(const Api &api,
         result->inputMessageContent = text;
 
         InlineKeyboardButton::Ptr button = make_shared<InlineKeyboardButton>();
-        button->text = "Throw @" + username;
+        button->text = "Throw it!";
         button->callbackData = username;
         auto replyMarkup = make_shared<InlineKeyboardMarkup>();
         replyMarkup->inlineKeyboard.resize(1);
@@ -86,4 +86,17 @@ void pushClickToThrow(const Api &api,
     }
 
     results.push_back(result);
+}
+
+void pushStickerOnInlineQuery(const Api &api,
+                              vector<InlineQueryResult::Ptr> &results,
+                              const string &query)
+{
+    if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
+        pushStickerToResultByUsername(api, results, query.c_str() + 1);
+    else
+        pushStickerToResultByUsernameFuzzy(api, results, query);
+
+    if (results.size() == 0) // 如果列表依然是空的，则显示按钮用于创建
+        pushClickToThrow(api, results, query);
 }

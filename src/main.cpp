@@ -164,13 +164,7 @@ int main()
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
-        if (query.c_str()[0] == '@') // 首位是@的话进行精确匹配
-            pushStickerToResultByUsername(bot.getApi(), results, query.c_str() + 1);
-        else
-            pushStickerToResultByUsernameFuzzy(bot.getApi(), results, query);
-
-        if (results.size() == 0) // 如果列表依然是空的，则显示按钮用于创建
-            pushClickToThrow(bot.getApi(), results, query);
+        pushStickerOnInlineQuery(bot.getApi(), results, query);
 
         // debug json
         // TgTypeParser tgTypeParser;
@@ -191,18 +185,19 @@ int main()
 
         LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), username.c_str());
 
-        throwByUsername(bot.getApi(), callbackQuery->from->id, username, callbackQuery->from->id) &&
+        if (throwByUsername(bot.getApi(), callbackQuery->from->id, username, callbackQuery->from->id))
+        {
             sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
-
-        try
-        {
-            bot.getApi().answerCallbackQuery(callbackQuery->id, "Success, now you can find it in inline query.");
-            // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/addstickers/wmliyin_by_ThrowYouBot");
-            // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/ThrowYouBot?start=XXXX");
-        }
-        catch (TgException &e)
-        {
-            LogE("TgBot::Api::answerCallbackQuery: %s", e.what());
+            try
+            {
+                bot.getApi().answerCallbackQuery(callbackQuery->id, "Success, now you can find it in inline query.");
+                // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/addstickers/wmliyin_by_ThrowYouBot");
+                // bot.getApi().answerCallbackQuery(callbackQuery->id, "喵喵喵", false, "t.me/ThrowYouBot?start=XXXX");
+            }
+            catch (TgException &e)
+            {
+                LogE("TgBot::Api::answerCallbackQuery: %s", e.what());
+            }
         }
     });
 
