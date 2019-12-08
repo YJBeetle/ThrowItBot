@@ -42,7 +42,7 @@ int main()
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
 
-        if (message->forwardDate) // 是转发的消息
+        if (message->forwardDate && message->chat->type == Chat::Type::Private) // 是转发的消息 并且是私聊
         {
             if (message->forwardFrom)
             {
