@@ -37,7 +37,7 @@ int main()
     Bot bot(token);
 
     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) { // 处理收到的直接消息
-        LogI("Message: chat->username=%s, chat->id=%lld, text=%s", message->chat->username.c_str(), message->chat->id, message->text.c_str());
+        LogI("Message: chat->username=%s, chat->id=%lld, from->username=%s, from->id=%lld, text=%s", message->chat->username.c_str(), message->chat->id, message->from->username.c_str(), message->from->id, message->text.c_str());
 
         auto &api = bot.getApi();
         auto chatId = message->chat->id;
