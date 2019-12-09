@@ -20,12 +20,17 @@ shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
     auto bg = make_shared<ArtRobot::Component::Image>("bg", 0, 0, 512, 512, 0, "p.png"); // bg
 
     auto img = make_shared<ArtRobot::Component::Image>("img", // img
-                                                       18.56, 180.98,
-                                                       135.53, 135.53,
+                                                       19, 181,
+                                                       136, 136,
                                                        -160,
                                                        imgMat);
 
-    auto mask = make_shared<ArtRobot::Component::ImageMask>("mask", 0, 0, 512, 512, 0, "p_mask.png", img); // Mask
+    auto mask = make_shared<ArtRobot::Component::ImageMask>("mask", // Mask
+                                                            19, 181,
+                                                            136, 136,
+                                                            0,
+                                                            "p_mask.png",
+                                                            img);
 
     auto body = make_shared<ArtRobot::Component::Group>("body"); // body
     body->addChild(bg);
@@ -42,7 +47,7 @@ bool throwByImage(const Api &api, int64_t chatId,
 {
     string username = __username;
     lowercase(username);
-    string stickerName = getStickerName(username) ; // 贴纸名字
+    string stickerName = getStickerName(username); // 贴纸名字
 
     LogV("throwByImage: username=%s, title=%s, ownerId=%d, stickerName=%s", username.c_str(), __title.c_str(), ownerId, stickerName.c_str());
 
@@ -109,7 +114,7 @@ bool throwByImage(const Api &api, int64_t chatId,
         catch (TgException &e)
         {
             LogE("throwByImage: TgBot::Api::createNewStickerSet: %s", e.what());
-            if(strcmp(e.what(),"Bad Request: PEER_ID_INVALID")==0)
+            if (strcmp(e.what(), "Bad Request: PEER_ID_INVALID") == 0)
                 sendMessage(api, chatId, "贴图创建失败，原因是Telegram的服务器拒绝将你添加为该表情的所有者\n请尝试与我私聊重试");
             return false;
         }
