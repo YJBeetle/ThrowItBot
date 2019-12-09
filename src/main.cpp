@@ -158,9 +158,9 @@ int main()
     });
 
     bot.getEvents().onInlineQuery([&bot](InlineQuery::Ptr inlineQuery) {
-        auto &query = inlineQuery->query;
+        LogI("InlineQuery: \n\tfrom: <%s>(%d)\n%s", inlineQuery->from->username.c_str(), inlineQuery->from->id, inlineQuery->query.c_str());
 
-        LogI("InlineQuery: %s: %s", inlineQuery->from->username.c_str(), query.c_str());
+        auto &query = inlineQuery->query;
 
         vector<InlineQueryResult::Ptr> results; // 准备results
 
@@ -181,9 +181,9 @@ int main()
     });
 
     bot.getEvents().onCallbackQuery([&bot](CallbackQuery::Ptr callbackQuery) {
-        auto &username = callbackQuery->data;
+        LogI("onCallbackQuery: \n\tfrom: <%s>(%d)\n%s", callbackQuery->from->username.c_str(), callbackQuery->from->id, callbackQuery->data.c_str());
 
-        LogI("onCallbackQuery: %s: %s", callbackQuery->from->username.c_str(), username.c_str());
+        auto &username = callbackQuery->data;
 
         if (throwByUsername(bot.getApi(), callbackQuery->from->id, username, callbackQuery->from->id))
         {
