@@ -56,7 +56,7 @@ int main()
             return;
         }
 
-        if (message->text.c_str()[0] == '@') // 首位是@的话Throw Username
+        if (message->text.c_str()[0] == '@' && message->chat->type == Chat::Type::Private) // 首位是@ 并且是私聊 的话Throw Username
         {
             auto &username = message->text;
             throwByUsername(api, chatId, username, message->from->id) &&
