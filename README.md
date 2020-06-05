@@ -15,8 +15,7 @@ brew install openssl zlib cmake boost@1.59 pango
 ```
 
 tgbot-cpp:
-git clone https://github.com/YJBeetle/tgbot-cpp.git
-git@github.com:YJBeetle/tgbot-cpp.git
+https://github.com/YJBeetle/tgbot-cpp
 
 ArtRobot: 
 https://github.com/YJBeetle/ArtRobot
