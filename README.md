@@ -19,7 +19,7 @@ git clone https://github.com/YJBeetle/tgbot-cpp.git
 git@github.com:YJBeetle/tgbot-cpp.git
 
 ArtRobot: 
-https://gitlab.com/project-null-plus-1/art_robot
+https://github.com/YJBeetle/ArtRobot
 
 ## Build&&Test
 
