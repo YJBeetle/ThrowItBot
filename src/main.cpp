@@ -77,11 +77,11 @@ int main()
 
         if (message->chat->type == Chat::Type::Private)
         { // 私聊
-            sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息给我，或者在这里@他。");
+            sendMessage(api, chatId, "你可以说 /throw 来扔你自己并更新你的头像表情包！\n如果想扔别人并更新其头像表情包，你可以转发他的消息给我，或者在这里@他。");
         }
         else
         {
-            sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息私聊给我，或者在这里发送 /throw 他的用户名。");
+            sendMessage(api, chatId, "你可以说 /throw 来扔你自己！\n如果想扔别人，你可以转发他的消息私聊给我，或者在这里发送 /throw 他的用户名。\n如果你希望更新某个用户的头像表情包，请私聊我并在私聊中@他。");
         }
     });
 
@@ -105,7 +105,7 @@ int main()
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
                 throwByUserId(api, chatId, message->from, message->from->id) &&
-                    sendMessage(api, chatId, "( ﹁ ﹁ )");
+                    sendMessage(api, chatId, "你的头像表情包更新成功( ﹁ ﹁ )");
             }
             else
             {                                                                                          // 如果是群聊
@@ -131,7 +131,7 @@ int main()
             if (message->chat->type == Chat::Type::Private)
             { // 私聊
                 throwByUsername(api, chatId, username, message->from->id) &&
-                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
+                    sendMessage(api, chatId, username + "的头像表情包更新成功<(ˉ^ˉ)>");
             }
             else
             {                                                                        // 如果是群聊
