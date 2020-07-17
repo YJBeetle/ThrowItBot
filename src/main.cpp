@@ -47,7 +47,7 @@ int main()
             if (message->forwardFrom)
             {
                 throwByUserId(api, chatId, message->forwardFrom, message->from->id) &&
-                    sendMessage(api, chatId, "<(ˉ^ˉ)>");
+                    sendMessage(api, chatId, message->forwardFrom + "的头像表情包更新成功<(ˉ^ˉ)>");
             }
             else
             { // 被转发用户的隐私设置原因无法获取uid
@@ -60,7 +60,7 @@ int main()
         {
             auto &username = message->text;
             throwByUsername(api, chatId, username, message->from->id) &&
-                sendMessage(api, chatId, "<(ˉ^ˉ)>");
+                sendMessage(api, chatId, username + "的头像表情包更新成功<(ˉ^ˉ)>");
             return;
         }
 
@@ -187,7 +187,7 @@ int main()
 
         if (throwByUsername(bot.getApi(), callbackQuery->from->id, username, callbackQuery->from->id))
         {
-            sendMessage(bot.getApi(), callbackQuery->from->id, "<(ˉ^ˉ)>");
+            sendMessage(bot.getApi(), callbackQuery->from->id, username + "的头像表情包更新成功<(ˉ^ˉ)>");
             try
             {
                 bot.getApi().answerCallbackQuery(callbackQuery->id, "Success, now you can find it in inline query.");
