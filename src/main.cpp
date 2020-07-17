@@ -47,7 +47,7 @@ int main()
             if (message->forwardFrom)
             {
                 throwByUserId(api, chatId, message->forwardFrom, message->from->id) &&
-                    sendMessage(api, chatId, message->forwardFrom + "的头像表情包更新成功<(ˉ^ˉ)>");
+                    sendMessage(api, chatId, std::string(message->forwardFrom) + "的头像表情包更新成功<(ˉ^ˉ)>");
             }
             else
             { // 被转发用户的隐私设置原因无法获取uid
