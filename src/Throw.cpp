@@ -10,7 +10,7 @@ using namespace cv;
 using namespace TgBot;
 
 // ArtRobot的实际绘制函数
-shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
+unique_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
 {
     vector<unsigned char> imgVector(__imgData.begin(), __imgData.end()); // 图片转为vector
     Mat imgMat = imdecode(imgVector, IMREAD_COLOR);                      // 图片转为Mat
@@ -32,7 +32,7 @@ shared_ptr<ArtRobot::Component::Base> drawImage(const string &__imgData)
                                                             "p_mask.png",
                                                             img);
 
-    auto body = make_shared<ArtRobot::Component::Group>("body"); // body
+    auto body = make_unique<ArtRobot::Component::Group>("body"); // body
     body->addChild(bg);
     body->addChild(mask);
     return body;
